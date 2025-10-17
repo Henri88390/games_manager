@@ -9,6 +9,7 @@ import styles from "./App.module.scss";
 import UserArea from "./components/UserArea/UserArea";
 import Auth from "./pages/Auth/Auth";
 import Home from "./pages/Home/Home";
+import PublicSpace from "./pages/PublicSpace/PublicSpace";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -67,7 +68,16 @@ function App() {
               )
             }
           />
-          {/* Redirect unknown routes to home */}
+          <Route
+            path="/public-space"
+            element={
+              loggedIn ? (
+                <PublicSpace userEmail={userEmail} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>

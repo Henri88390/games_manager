@@ -24,3 +24,8 @@ export interface HomeProps {
   userEmail: string;
   onLogout: () => void;
 }
+
+export interface PublicSpaceProps {
+  userEmail: string;
+  onLogout: () => void;
+}

@@ -231,185 +231,187 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     <div className={styles.userAreaBackground}>
       <LoginHeader userEmail={userEmail} onLogout={onLogout} />
 
-      <div className={styles.searchInputWrapper}>
-        <div className={styles.searchInputGroup}>
-          <input
-            ref={searchInputRef}
-            className={`${styles.input} ${styles.searchInput}`}
-            type={
-              searchField === SearchField.DateAdded
-                ? "date"
-                : searchField === SearchField.Rating ||
-                  searchField === SearchField.TimeSpent
-                ? "number"
-                : "text"
-            }
-            placeholder={`Search by ${searchField}`}
-            value={pendingSearchValue}
-            onChange={handleSearchValueChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                triggerSearch();
+      <div className={styles.bodyContainer}>
+        <div className={styles.searchInputWrapper}>
+          <div className={styles.searchInputGroup}>
+            <input
+              ref={searchInputRef}
+              className={`${styles.input} ${styles.searchInput}`}
+              type={
+                searchField === SearchField.DateAdded
+                  ? "date"
+                  : searchField === SearchField.Rating ||
+                    searchField === SearchField.TimeSpent
+                  ? "number"
+                  : "text"
               }
-            }}
-          />
-          {pendingSearchValue && (
+              placeholder={`Search by ${searchField}`}
+              value={pendingSearchValue}
+              onChange={handleSearchValueChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  triggerSearch();
+                }
+              }}
+            />
+            {pendingSearchValue && (
+              <button
+                className={styles.clearButton}
+                type="button"
+                onClick={handleClear}
+                aria-label="Clear filter"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <line
+                    x1="4"
+                    y1="4"
+                    x2="12"
+                    y2="12"
+                    stroke="#8a5be0"
+                    strokeWidth="2"
+                  />
+                  <line
+                    x1="12"
+                    y1="4"
+                    x2="4"
+                    y2="12"
+                    stroke="#8a5be0"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </button>
+            )}
             <button
-              className={styles.clearButton}
+              className={styles.searchButton}
               type="button"
-              onClick={handleClear}
-              aria-label="Clear filter"
+              onClick={triggerSearch}
+              aria-label="Search"
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="#8a5be0" strokeWidth="2" />
                 <line
-                  x1="4"
-                  y1="4"
-                  x2="12"
-                  y2="12"
-                  stroke="#8a5be0"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="12"
-                  y1="4"
-                  x2="4"
-                  y2="12"
+                  x1="13"
+                  y1="13"
+                  x2="17"
+                  y2="17"
                   stroke="#8a5be0"
                   strokeWidth="2"
                 />
               </svg>
             </button>
-          )}
-          <button
-            className={styles.searchButton}
-            type="button"
-            onClick={triggerSearch}
-            aria-label="Search"
+          </div>
+          <select
+            className={styles.input}
+            value={searchField}
+            onChange={handleSearchFieldChange}
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <circle cx="8" cy="8" r="7" stroke="#8a5be0" strokeWidth="2" />
-              <line
-                x1="13"
-                y1="13"
-                x2="17"
-                y2="17"
-                stroke="#8a5be0"
-                strokeWidth="2"
-              />
-            </svg>
-          </button>
+            <option value="title">Title</option>
+            <option value="rating">Rating</option>
+            <option value="timeSpent">Time Spent</option>
+            <option value="dateAdded">Date Added</option>
+          </select>
         </div>
-        <select
-          className={styles.input}
-          value={searchField}
-          onChange={handleSearchFieldChange}
-        >
-          <option value="title">Title</option>
-          <option value="rating">Rating</option>
-          <option value="timeSpent">Time Spent</option>
-          <option value="dateAdded">Date Added</option>
-        </select>
-      </div>
 
-      <h2 className={styles.title}>Your Games</h2>
-      {toast && <div className={styles.toast}>{toast}</div>}
-      {error && <div className={styles.error}>{error}</div>}
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <input
-          className={styles.input}
-          type="text"
-          placeholder="Title"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          required
-        />
-        <div className={styles.inputGroup}>
+        <h2 className={styles.title}>Your Games</h2>
+        {toast && <div className={styles.toast}>{toast}</div>}
+        {error && <div className={styles.error}>{error}</div>}
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <input
+            className={styles.input}
+            type="text"
+            placeholder="Title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            required
+          />
+          <div className={styles.inputGroup}>
+            <input
+              className={styles.input}
+              type="number"
+              min={0}
+              max={5}
+              placeholder="Rating"
+              value={form.rating === 0 ? "" : form.rating}
+              onChange={handleRatingChange}
+              required
+            />
+            <span className={styles.inputError}>
+              {ratingError ? ratingError : "\u00A0"}
+            </span>
+          </div>
           <input
             className={styles.input}
             type="number"
             min={0}
-            max={5}
-            placeholder="Rating"
-            value={form.rating === 0 ? "" : form.rating}
-            onChange={handleRatingChange}
+            placeholder="Time spent"
+            value={form.timeSpent === 0 ? "" : form.timeSpent}
+            onChange={(e) =>
+              setForm({ ...form, timeSpent: Number(e.target.value) })
+            }
             required
           />
-          <span className={styles.inputError}>
-            {ratingError ? ratingError : "\u00A0"}
-          </span>
-        </div>
-        <input
-          className={styles.input}
-          type="number"
-          min={0}
-          placeholder="Time spent"
-          value={form.timeSpent === 0 ? "" : form.timeSpent}
-          onChange={(e) =>
-            setForm({ ...form, timeSpent: Number(e.target.value) })
-          }
-          required
-        />
-        <button className={styles.button} type="submit" disabled={loading}>
-          {editingId ? "Update Game" : "Add Game"}
-        </button>
-        {editingId && (
-          <button
-            className={styles.cancelButton}
-            type="button"
-            onClick={() => {
-              setEditingId(null);
-              setForm({ title: "", rating: 1, timeSpent: 0 });
-            }}
-          >
-            Cancel
+          <button className={styles.button} type="submit" disabled={loading}>
+            {editingId ? "Update Game" : "Add Game"}
           </button>
-        )}
-      </form>
-      {loading ? (
-        <div className={styles.loading}>Loading...</div>
-      ) : (
-        <table className={styles.gamesTable}>
-          <thead>
-            <tr>
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={styles.sortableHeader}
-                  onClick={() => handleHeaderClick(col.key)}
-                  style={{ cursor: "pointer", userSelect: "none" }}
-                >
-                  {col.label} {getSortIcon(col.key)}
-                </th>
-              ))}
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedGames.map((game) => (
-              <tr key={game.id}>
-                <td>{game.title}</td>
-                <td>{game.rating}</td>
-                <td>{game.timeSpent}</td>
-                <td>{new Date(game.dateAdded).toLocaleDateString()}</td>
-                <td>
-                  <button
-                    className={styles.editButton}
-                    onClick={() => handleEdit(game)}
+          {editingId && (
+            <button
+              className={styles.cancelButton}
+              type="button"
+              onClick={() => {
+                setEditingId(null);
+                setForm({ title: "", rating: 1, timeSpent: 0 });
+              }}
+            >
+              Cancel
+            </button>
+          )}
+        </form>
+        {loading ? (
+          <div className={styles.loading}>Loading...</div>
+        ) : (
+          <table className={styles.gamesTable}>
+            <thead>
+              <tr>
+                {columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={styles.sortableHeader}
+                    onClick={() => handleHeaderClick(col.key)}
+                    style={{ cursor: "pointer", userSelect: "none" }}
                   >
-                    Edit
-                  </button>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => handleDelete(game.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
+                    {col.label} {getSortIcon(col.key)}
+                  </th>
+                ))}
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {sortedGames.map((game) => (
+                <tr key={game.id}>
+                  <td>{game.title}</td>
+                  <td>{game.rating}</td>
+                  <td>{game.timeSpent}</td>
+                  <td>{new Date(game.dateAdded).toLocaleDateString()}</td>
+                  <td>
+                    <button
+                      className={styles.editButton}
+                      onClick={() => handleEdit(game)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => handleDelete(game.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

@@ -98,6 +98,39 @@ app.put("/api/games/:id", (req, res) => {
   res.json(game);
 });
 
+function getAllGames(): Game[] {
+  return Object.values(userGames).flat();
+}
+
+app.get("/api/games/public/popular", (req, res) => {
+  const allGames = getAllGames();
+  const popular = [...allGames]
+    .sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      return b.timeSpent - a.timeSpent;
+    })
+    .slice(0, 10);
+  res.json(popular);
+});
+
+app.get("/api/games/public/recent", (req, res) => {
+  const allGames = getAllGames();
+  const recent = [...allGames]
+    .sort(
+      (a, b) =>
+        new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
+    )
+    .slice(0, 10);
+  res.json(recent);
+});
+
+app.get("/api/games/public/search", (req, res) => {
+  const title = ((req.query.title as string) || "").toLowerCase();
+  const allGames = getAllGames();
+  const results = allGames.filter((g) => g.title.toLowerCase().includes(title));
+  res.json(results.slice(0, 20)); // limit results
+});
+
 app.delete("/api/games/:id", (req, res) => {
   const { email } = req.body;
   const { id } = req.params;
