@@ -2,23 +2,30 @@
 
 ---
 
-## Backend Setup
+### 1. Clone the Repository
 
-### 1. Start the Local Database
+```bash
+git clone https://github.com/your-username/privio.git
+cd privio_test
+```
+
+## 2. Backend Setup
+
+### 2.1 Start the Local Database
 
 Make sure you have [Docker](https://www.docker.com/) installed.
 
 ```bash
-docker-compose up -d
+docker-compose up
 ```
 
 This will start a PostgreSQL database with demo data.
 
 ---
 
-## Frontend Setup
+## 3. Frontend Setup
 
-### 1. Configure the Frontend (optional)
+### 3.1 Configure the Frontend (optional)
 
 If you want to test the pagination with different values, create a `.env` file in `/frontend`:
 
@@ -26,7 +33,7 @@ If you want to test the pagination with different values, create a `.env` file i
 VITE_PAGINATION_LIMIT=10
 ```
 
-### 2. Run the Frontend
+### 4. Run the Frontend
 
 ```bash
 cd frontend
@@ -42,7 +49,10 @@ npm run dev
 docker-compose down
 ```
 
----
+## Deleting the database volumes
 
-**Demo login:**  
-Sign up in the login page using any email and a chosen password.
+```bash
+docker-compose down -v
+```
+
+---
