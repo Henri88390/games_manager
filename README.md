@@ -23,22 +23,22 @@ This will start a PostgreSQL database with demo data.
 
 ---
 
-## 3. Frontend Setup
-
-### 3.1 Configure the Frontend (optional)
-
-If you want to test the pagination with different values, create a `.env` file in `/frontend`:
-
-```
-VITE_PAGINATION_LIMIT=10
-```
-
-### 4. Run the Frontend
+### 3. Run the Frontend
 
 ```bash
 cd frontend
 npm install
 npm run dev
+```
+
+---
+
+### 4. Configure the Frontend (optional)
+
+If you want to test the pagination with different values, create a `.env` file in `/frontend`:
+
+```
+VITE_PAGINATION_LIMIT=10
 ```
 
 ---
