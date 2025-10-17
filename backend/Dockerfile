@@ -7,6 +7,9 @@ RUN npm install
 
 COPY . .
 
+# Ensure proper node_modules ownership and permissions
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 
