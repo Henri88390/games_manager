@@ -1,0 +1,76 @@
+@use "../../../public/styles/colors.module.scss" as colors;
+
+.statsPage {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem 2.5rem;
+  background: colors.$color-bg-card;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(colors.$color-purple-light, 0.08);
+  color: colors.$color-text-main;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  color: colors.$color-purple-light;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+.statsTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: colors.$color-bg-card;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(colors.$color-purple-light, 0.04);
+  overflow: hidden;
+  margin: 0 auto 2rem auto;
+
+  th,
+  td {
+    padding: 1rem 1.2rem;
+    text-align: left;
+    font-size: 1.1rem;
+    border-bottom: 1px solid colors.$color-bg-card;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  th {
+    background: colors.$color-purple-dark;
+    color: colors.$color-primary-light;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  td:first-child {
+    font-weight: 600;
+    text-align: left;
+    color: colors.$color-purple-light;
+    background: colors.$color-bg-card;
+    width: 40%;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

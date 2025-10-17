@@ -9,10 +9,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (_req, res) => {
-  res.send("Hello World!");
-});
-
 app.post("/api/auth/signup", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -269,6 +265,55 @@ app.get("/api/games/public/search", async (req, res) => {
     res.json({
       results: result.rows,
       total: parseInt(countResult.rows[0].count, 10),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+});
+
+// --- user statistics ---
+app.get("/api/games/stats", async (req, res) => {
+  const email = req.query.email as string;
+  if (!email) return res.status(400).json({ error: "Missing email" });
+
+  try {
+    const stats = await pool.query(
+      `SELECT
+        COUNT(*) AS total_games,
+        COALESCE(SUM(timespent), 0) AS total_time,
+        COALESCE(AVG(rating), 0) AS avg_rating,
+        COALESCE(AVG(timespent), 0) AS avg_time
+      FROM games
+      WHERE email = $1`,
+      [email]
+    );
+    res.json({
+      totalTime: Number(stats.rows[0].total_time),
+      avgRating: Number(stats.rows[0].avg_rating),
+      totalGames: stats.rows[0].total_games,
+      avgTime: Number(stats.rows[0].avg_time),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+});
+
+// --- global statistics ---
+app.get("/api/games/public/stats", async (_req, res) => {
+  try {
+    const stats = await pool.query(
+      `SELECT
+        COUNT(*) AS total_games,
+        COALESCE(SUM(timespent), 0) AS total_time,
+        COALESCE(AVG(rating), 0) AS avg_rating,
+        COALESCE(AVG(timespent), 0) AS avg_time
+      FROM games;`
+    );
+    res.json({
+      totalGames: Number(stats.rows[0].total_games),
+      totalTime: Number(stats.rows[0].total_time),
+      avgRating: Number(stats.rows[0].avg_rating),
+      avgTime: Number(stats.rows[0].avg_time),
     });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });

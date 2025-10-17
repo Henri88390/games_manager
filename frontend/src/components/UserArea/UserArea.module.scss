@@ -174,21 +174,6 @@
   pointer-events: none;
 }
 
-.toast {
-  position: fixed;
-  top: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: colors.$color-purple-dark;
-  color: colors.$color-purple-light;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  box-shadow: 0 2px 16px #000a;
-  z-index: 1000;
-  animation: fadeInOut 2s;
-}
-
 @keyframes fadeInOut {
   0% {
     opacity: 0;

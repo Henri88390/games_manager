@@ -1,0 +1,32 @@
+@use "../../../public/styles/colors.module.scss" as colors;
+
+.toast {
+  position: fixed;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: colors.$color-error;
+  color: colors.$color-bg-card;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(colors.$color-purple-light, 0.12);
+  font-weight: 600;
+  z-index: 1000;
+  animation: fadeIn 0.3s, fadeOut 0.5s 2s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

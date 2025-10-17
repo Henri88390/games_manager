@@ -4,6 +4,7 @@ import { usePaginationLimit } from "../../hooks/usePaginationLimit";
 import { SearchField, type Game, type UserAreaProps } from "../../types/types";
 import LoginHeader from "../LoginHeader/LoginHeader";
 import Pagination from "../Pagination/Pagination";
+import Toast from "../Toast/Toast";
 import styles from "./UserArea.module.scss";
 
 export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
@@ -295,7 +296,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
         </div>
 
         <h2 className={styles.title}>Your Games</h2>
-        {toast && <div className={styles.toast}>{toast}</div>}
+        {toast && <Toast message={toast} visible={!!toast} />}
         {error && <div className={styles.error}>{error}</div>}
         <form className={styles.form} onSubmit={handleSubmit}>
           <input
