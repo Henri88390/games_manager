@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { usePaginationLimit } from "../../hooks/usePaginationLimit";
 import { SearchField, type Game, type UserAreaProps } from "../../types/types";
 import LoginHeader from "../LoginHeader/LoginHeader";
+import Pagination from "../Pagination/Pagination";
 import styles from "./UserArea.module.scss";
 
 export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const [games, setGames] = useState<Game[]>([]);
+
+  //pagination
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const limit = usePaginationLimit();
+
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ title: "", rating: 0, timeSpent: 0 });
   const [error, setError] = useState("");
@@ -15,31 +23,44 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const sortField = searchParams.get("sortField") || "title";
   const sortOrder = searchParams.get("sortOrder") || "asc";
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
   const searchField = searchParams.get("searchField") || "title";
   const searchValue = searchParams.get("searchValue") || "";
   const [pendingSearchValue, setPendingSearchValue] = useState(searchValue);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const columns = [
     { key: "title", label: "Title" },
     { key: "rating", label: "Rating" },
     { key: "timeSpent", label: "Time Spent (h)" },
-    { key: "dateAdded", label: "Date Added" },
+    { key: "dateadded", label: "Date Added" },
   ];
 
+  const fetchGames = () => {
+    setLoading(true);
+    const params = new URLSearchParams({
+      email: userEmail,
+      searchField,
+      searchValue,
+      page: String(page),
+      limit: String(limit),
+    });
+    fetch(`http://localhost:3000/api/games?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setGames(data.results || []);
+        setTotal(data.total || 0);
+      })
+      .finally(() => setLoading(false));
+  };
+
   const triggerSearch = () => {
+    setPage(1);
     const params = new URLSearchParams(searchParams);
     params.set("searchField", searchField);
     params.set("searchValue", searchInputRef.current?.value || "");
     params.set("email", userEmail);
     setSearchParams(params);
-
-    setLoading(true);
-    fetch(`http://localhost:3000/api/games?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => setGames(data))
-      .finally(() => setLoading(false));
+    fetchGames();
   };
 
   useEffect(() => {
@@ -47,17 +68,9 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   }, [searchValue]);
 
   useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams({
-      email: userEmail,
-      searchField,
-      searchValue,
-    });
-    fetch(`http://localhost:3000/api/games?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => setGames(data))
-      .finally(() => setLoading(false));
-  }, [userEmail]);
+    fetchGames();
+    // eslint-disable-next-line
+  }, [userEmail, page, searchField, searchValue]);
 
   const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
@@ -104,12 +117,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     );
     setTimeout(() => setToast(""), 2000);
 
-    fetch(
-      `http://localhost:3000/api/games?email=${encodeURIComponent(userEmail)}`
-    )
-      .then((res) => res.json())
-      .then((data) => setGames(data))
-      .finally(() => setLoading(false));
+    fetchGames();
   };
 
   const handleDelete = async (id: string) => {
@@ -136,12 +144,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
       setToast("Network error while deleting game");
       setTimeout(() => setToast(""), 2000);
     }
-    fetch(
-      `http://localhost:3000/api/games?email=${encodeURIComponent(userEmail)}`
-    )
-      .then((res) => res.json())
-      .then((data) => setGames(data))
-      .finally(() => setLoading(false));
+    fetchGames();
   };
 
   const handleEdit = (game: Game) => {
@@ -201,31 +204,10 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     params.set("searchValue", "");
     setSearchParams(params);
     setPendingSearchValue("");
-    triggerSearch();
+    setPage(1);
+    fetchGames();
     if (searchInputRef.current) searchInputRef.current.value = "";
-    setLoading(true);
-    fetch(
-      `http://localhost:3000/api/games?email=${encodeURIComponent(userEmail)}`
-    )
-      .then((res) => res.json())
-      .then((data) => setGames(data))
-      .finally(() => setLoading(false));
   };
-
-  const sortedGames = [...games].sort((a, b) => {
-    let result = 0;
-    if (sortField === "title") {
-      result = a.title.localeCompare(b.title);
-    } else if (sortField === "rating") {
-      result = a.rating - b.rating;
-    } else if (sortField === "timeSpent") {
-      result = a.timespent - b.timespent;
-    } else if (sortField === "dateAdded") {
-      result =
-        new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
-    }
-    return sortOrder === "asc" ? result : -result;
-  });
 
   return (
     <div className={styles.userAreaBackground}>
@@ -308,7 +290,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
             <option value="title">Title</option>
             <option value="rating">Rating</option>
             <option value="timeSpent">Time Spent</option>
-            <option value="dateAdded">Date Added</option>
+            <option value="dateadded">Date Added</option>
           </select>
         </div>
 
@@ -369,47 +351,55 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
         {loading ? (
           <div className={styles.loading}>Loading...</div>
         ) : (
-          <table className={styles.gamesTable}>
-            <thead>
-              <tr>
-                {columns.map((col) => (
-                  <th
-                    key={col.key}
-                    className={styles.sortableHeader}
-                    onClick={() => handleHeaderClick(col.key)}
-                    style={{ cursor: "pointer", userSelect: "none" }}
-                  >
-                    {col.label} {getSortIcon(col.key)}
-                  </th>
-                ))}
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedGames.map((game) => (
-                <tr key={game.id}>
-                  <td>{game.title}</td>
-                  <td>{game.rating}</td>
-                  <td>{game.timespent}</td>
-                  <td>{new Date(game.dateAdded).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      className={styles.editButton}
-                      onClick={() => handleEdit(game)}
+          <>
+            <table className={styles.gamesTable}>
+              <thead>
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={col.key}
+                      className={styles.sortableHeader}
+                      onClick={() => handleHeaderClick(col.key)}
+                      style={{ cursor: "pointer", userSelect: "none" }}
                     >
-                      Edit
-                    </button>
-                    <button
-                      className={styles.deleteButton}
-                      onClick={() => handleDelete(game.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+                      {col.label} {getSortIcon(col.key)}
+                    </th>
+                  ))}
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {games.map((game) => (
+                  <tr key={game.id}>
+                    <td>{game.title}</td>
+                    <td>{game.rating}</td>
+                    <td>{game.timespent}</td>
+                    <td>{new Date(game.dateadded).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        className={styles.editButton}
+                        onClick={() => handleEdit(game)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className={styles.deleteButton}
+                        onClick={() => handleDelete(game.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Pagination
+              page={page}
+              limit={limit}
+              total={total}
+              setPage={setPage}
+            />
+          </>
         )}
       </div>
     </div>

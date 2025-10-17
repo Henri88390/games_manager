@@ -1,0 +1,33 @@
+@import "../../../public/styles/colors.module.scss";
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 2rem 0 1rem 0;
+}
+
+.paginationButton {
+  background: $color-purple-dark;
+  color: $color-text-main;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, opacity 0.18s;
+
+  &:disabled {
+    background: $color-purple-hover;
+    color: $color-text-main;
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.paginationPage {
+  color: $color-text-main;
+  font-weight: 600;
+  font-size: 1.1rem;
+}

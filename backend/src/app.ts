@@ -6,8 +6,6 @@ import { SearchField } from "./types/game";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const users: { [email: string]: { password: string } } = {};
-
 app.use(cors());
 app.use(express.json());
 
@@ -58,13 +56,16 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // --- GAME ENDPOINTS ---
-
 app.get("/api/games", async (req, res) => {
   const email = req.query.email as string;
   if (!email) return res.status(400).json({ error: "Missing email" });
 
   const searchField = req.query.searchField as string;
   const searchValue = req.query.searchValue as string;
+
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const offset = (page - 1) * limit;
 
   let query = "SELECT * FROM games WHERE email = $1";
   let params: any[] = [email];
@@ -92,9 +93,45 @@ app.get("/api/games", async (req, res) => {
     }
   }
 
+  // Add pagination to the query
+  query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+  params.push(limit, offset);
+
+  // Get total count for pagination
+  let countQuery = "SELECT COUNT(*) FROM games WHERE email = $1";
+  let countParams: any[] = [email];
+  if (searchField && searchValue) {
+    switch (searchField) {
+      case SearchField.Title:
+        countQuery += " AND LOWER(title) LIKE $2";
+        countParams.push(`%${searchValue.toLowerCase()}%`);
+        break;
+      case SearchField.Rating:
+        countQuery += " AND rating = $2";
+        countParams.push(Number(searchValue));
+        break;
+      case SearchField.TimeSpent:
+        countQuery += " AND timeSpent = $2";
+        countParams.push(Number(searchValue));
+        break;
+      case SearchField.DateAdded:
+        countQuery += " AND TO_CHAR(dateAdded, 'YYYY-MM-DD') = $2";
+        countParams.push(searchValue);
+        break;
+      default:
+        break;
+    }
+  }
+
   try {
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const [result, countResult] = await Promise.all([
+      pool.query(query, params),
+      pool.query(countQuery, countParams),
+    ]);
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });
   }
@@ -163,28 +200,48 @@ app.delete("/api/games/:id", async (req, res) => {
 
 // --- PUBLIC ENDPOINTS ---
 app.get("/api/games/public/popular", async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const offset = (page - 1) * limit;
   try {
-    const result = await pool.query(
-      `SELECT id, title, rating, timeSpent, dateAdded
-       FROM games
-       ORDER BY rating DESC, timeSpent DESC
-       LIMIT 10`
-    );
-    res.json(result.rows);
+    const [result, countResult] = await Promise.all([
+      pool.query(
+        `SELECT id, title, rating, timeSpent, dateAdded
+         FROM games
+         ORDER BY rating DESC, timeSpent DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      ),
+      pool.query(`SELECT COUNT(*) FROM games`),
+    ]);
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });
   }
 });
 
 app.get("/api/games/public/recent", async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const offset = (page - 1) * limit;
   try {
-    const result = await pool.query(
-      `SELECT id, title, rating, timeSpent, dateAdded
-       FROM games
-       ORDER BY dateAdded DESC
-       LIMIT 10`
-    );
-    res.json(result.rows);
+    const [result, countResult] = await Promise.all([
+      pool.query(
+        `SELECT id, title, rating, timeSpent, dateAdded
+         FROM games
+         ORDER BY dateAdded DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      ),
+      pool.query(`SELECT COUNT(*) FROM games`),
+    ]);
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });
   }
@@ -192,15 +249,27 @@ app.get("/api/games/public/recent", async (req, res) => {
 
 app.get("/api/games/public/search", async (req, res) => {
   const title = ((req.query.title as string) || "").toLowerCase();
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const offset = (page - 1) * limit;
   try {
-    const result = await pool.query(
-      `SELECT id, title, rating, timeSpent, dateAdded
-       FROM games
-       WHERE LOWER(title) LIKE $1
-       LIMIT 20`,
-      [`%${title}%`]
-    );
-    res.json(result.rows);
+    const [result, countResult] = await Promise.all([
+      pool.query(
+        `SELECT id, title, rating, timeSpent, dateAdded
+         FROM games
+         WHERE LOWER(title) LIKE $1
+         ORDER BY id
+         LIMIT $2 OFFSET $3`,
+        [`%${title}%`, limit, offset]
+      ),
+      pool.query(`SELECT COUNT(*) FROM games WHERE LOWER(title) LIKE $1`, [
+        `%${title}%`,
+      ]),
+    ]);
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });
   }

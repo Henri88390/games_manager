@@ -3,7 +3,7 @@ export type Game = {
   title: string;
   rating: number;
   timespent: number;
-  dateAdded: string;
+  dateadded: string;
 };
 
 export const SearchField = {
