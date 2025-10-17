@@ -1,9 +1,9 @@
-@import "../../../public/styles/colors.module.scss";
+@use "../../../public/styles/colors.module.scss";
 
 .title {
   font-size: 2rem;
   margin-bottom: 2rem;
-  color: $color-purple-light;
+  color: colors.$color-purple-light;
   text-align: center;
 }
 
@@ -17,9 +17,9 @@
 }
 
 .input {
-  background: $color-bg-card;
+  background: colors.$color-bg-card;
   color: #cccccc;
-  border: 2px solid $color-purple-dark;
+  border: 2px solid colors.$color-purple-dark;
   border-radius: 6px;
   padding: 0.5rem 1rem;
   font-size: 1rem;
@@ -35,8 +35,8 @@
 }
 
 .button {
-  background: $color-primary;
-  color: $color-text-main;
+  background: colors.$color-primary;
+  color: colors.$color-text-main;
   border: none;
   border-radius: 6px;
   padding: 0.5rem 1.2rem;
@@ -45,12 +45,12 @@
   transition: background 0.2s;
 }
 .button:hover {
-  background: $color-primary-dark;
+  background: colors.$color-primary-dark;
 }
 
 .editButton {
-  background: $color-secondary;
-  color: $color-text-main;
+  background: colors.$color-secondary;
+  color: colors.$color-text-main;
   border: none;
   border-radius: 6px;
   padding: 0.3rem 0.8rem;
@@ -59,12 +59,12 @@
   transition: background 0.2s;
 }
 .editButton:hover {
-  background: $color-secondary-dark;
+  background: colors.$color-secondary-dark;
 }
 
 .deleteButton,
 .cancelButton {
-  background: $color-danger;
+  background: colors.$color-danger;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -75,12 +75,12 @@
 }
 .deleteButton:hover,
 .cancelButton:hover {
-  background: $color-danger-hover;
+  background: colors.$color-danger-hover;
 }
 
 .loading {
   text-align: center;
-  color: $color-purple-light;
+  color: colors.$color-purple-light;
   font-size: 1.2rem;
 }
 
@@ -91,8 +91,8 @@
 }
 
 .gameItem {
-  background: $color-bg-card;
-  color: $color-text-main;
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
   border-radius: 8px;
   margin-bottom: 1rem;
   padding: 1rem;
@@ -111,7 +111,7 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 2rem;
-  background: $color-bg-card;
+  background: colors.$color-bg-card;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -124,8 +124,8 @@
 }
 
 .gamesTable th {
-  background: $color-purple-dark;
-  color: $color-purple-light;
+  background: colors.$color-purple-dark;
+  color: colors.$color-purple-light;
   font-weight: bold;
 }
 
@@ -166,7 +166,7 @@
   min-width: 120px;
   max-width: 220px;
   white-space: nowrap;
-  color: $color-error;
+  color: colors.$color-error;
   font-size: 0.9rem;
   margin-top: 0.2rem;
   transition: opacity 0.2s;
@@ -179,8 +179,8 @@
   top: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  background: $color-purple-dark;
-  color: $color-purple-light;
+  background: colors.$color-purple-dark;
+  color: colors.$color-purple-light;
   padding: 0.75rem 2rem;
   border-radius: 8px;
   font-size: 1rem;
@@ -218,9 +218,9 @@
 
 .input.searchInput {
   width: 100%;
-  background: $color-bg-card;
-  color: $color-text-main;
-  border: 2px solid $color-purple-dark;
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
+  border: 2px solid colors.$color-purple-dark;
   border-radius: 6px;
   padding: 0.6rem 2.8rem 0.6rem 1rem; // room for icons
   font-size: 1rem;
@@ -231,7 +231,7 @@
     opacity: 1;
   }
   &:focus {
-    border-color: $color-purple-light;
+    border-color: colors.$color-purple-light;
     outline: none;
   }
 }
@@ -250,7 +250,7 @@
   border-radius: 4px;
   transition: background 0.2s;
   svg {
-    stroke: $color-purple-light;
+    stroke: colors.$color-purple-light;
     width: 1.2em;
     height: 1.2em;
     pointer-events: none;
@@ -274,7 +274,7 @@
   border-radius: 4px;
   transition: background 0.2s;
   svg {
-    stroke: $color-purple-light;
+    stroke: colors.$color-purple-light;
     width: 1em;
     height: 1em;
     pointer-events: none;
@@ -287,15 +287,15 @@
 select.input {
   min-width: 120px;
   max-width: 140px;
-  background: $color-bg-card;
-  color: $color-text-main;
-  border: 2px solid $color-purple-dark;
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
+  border: 2px solid colors.$color-purple-dark;
   border-radius: 6px;
   font-size: 1rem;
   padding: 0.6rem 1rem;
   transition: border-color 0.2s;
   &:focus {
-    border-color: $color-purple-light;
+    border-color: colors.$color-purple-light;
     outline: none;
   }
   margin-left: 0.5rem;
@@ -317,10 +317,10 @@ select.input {
     cursor: pointer;
   }
   &::-moz-focus-inner {
-    border-color: $color-purple-light;
+    border-color: colors.$color-purple-light;
   }
   &:focus {
-    border-color: $color-purple-light;
+    border-color: colors.$color-purple-light;
   }
 }
 

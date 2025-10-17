@@ -1,8 +1,8 @@
-@import "../../../public/styles/colors.module.scss";
+@use "../../../public/styles/colors.module.scss";
 
 .container {
-  background: $color-bg-dark;
-  color: $color-text-main;
+  background: colors.$color-bg-dark;
+  color: colors.$color-text-main;
   padding: 2rem;
   border-radius: 12px;
   max-width: 350px;
@@ -17,8 +17,8 @@
   width: 100%;
   padding: 0.7rem;
   margin-bottom: 1rem;
-  background: $color-bg-card;
-  color: $color-text-main;
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
   border: none;
   border-radius: 6px;
 }
@@ -34,33 +34,33 @@
   transition: background 0.2s, box-shadow 0.2s;
 }
 .button:hover {
-  background: $color-purple-hover;
+  background: colors.$color-purple-hover;
 }
 .signIn {
-  background: $color-purple-dark;
-  color: $color-text-main;
+  background: colors.$color-purple-dark;
+  color: colors.$color-text-main;
 }
 
 .signIn:hover {
-  background: $color-purple-hover;
+  background: colors.$color-purple-hover;
 }
 
 .signUp {
-  background: $color-purple;
-  color: $color-text-main;
+  background: colors.$color-purple;
+  color: colors.$color-text-main;
 }
 
 .signUp:hover {
-  background: $color-purple-light;
+  background: colors.$color-purple-light;
 }
 
 .error {
-  color: $color-error;
+  color: colors.$color-error;
   margin-bottom: 1rem;
   text-align: center;
 }
 .logout {
-  background: $color-error;
+  background: colors.$color-error;
   color: #fff;
   margin-top: 1rem;
 }
@@ -69,19 +69,19 @@
   width: 100%;
   padding: 0.7rem;
   margin-bottom: 1rem;
-  background: $color-bg-card;
-  color: $color-text-main;
-  border: 2px solid $color-bg-card;
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
+  border: 2px solid colors.$color-bg-card;
   border-radius: 6px;
   transition: border-color 0.2s;
 }
 
 .inputError {
-  border-color: $color-error;
+  border-color: colors.$color-error;
 }
 
 .inputErrorMsg {
-  color: $color-error;
+  color: colors.$color-error;
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
   margin-top: -0.7rem;

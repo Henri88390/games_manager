@@ -1,7 +1,7 @@
-@import "../../../public/styles/colors.module.scss";
+@use "../../../public/styles/colors.module.scss";
 
 .publicSpace {
-  color: $color-text-main;
+  color: colors.$color-text-main;
 }
 
 section {
@@ -14,22 +14,22 @@ section {
   margin-bottom: 1.2rem;
 
   input {
-    background: $color-bg-card;
-    color: $color-text-main;
-    border: 2px solid $color-purple-dark;
+    background: colors.$color-bg-card;
+    color: colors.$color-text-main;
+    border: 2px solid colors.$color-purple-dark;
     border-radius: 6px;
     padding: 0.5rem 1rem;
     font-size: 1rem;
     transition: border-color 0.2s;
     &:focus {
-      border-color: $color-purple-light;
+      border-color: colors.$color-purple-light;
       outline: none;
     }
   }
 
   button {
-    background: $color-primary;
-    color: $color-text-main;
+    background: colors.$color-primary;
+    color: colors.$color-text-main;
     border: none;
     border-radius: 6px;
     padding: 0.5rem 1.2rem;
@@ -37,7 +37,7 @@ section {
     cursor: pointer;
     transition: background 0.2s;
     &:hover {
-      background: $color-primary-dark;
+      background: colors.$color-primary-dark;
     }
   }
 }
@@ -47,37 +47,37 @@ section {
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 0.5rem;
-  background: $color-bg-card;
+  background: colors.$color-bg-card;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 16px #3a225633;
 }
 
 .gamesTable th {
-  background: $color-purple;
-  color: $color-text-main;
+  background: colors.$color-purple;
+  color: colors.$color-text-main;
   font-size: 1.08rem;
   font-weight: 600;
   padding: 0.8rem 1rem;
-  border-bottom: 2px solid $color-purple-dark;
+  border-bottom: 2px solid colors.$color-purple-dark;
   text-align: left;
 }
 
 .gamesTable td {
   padding: 0.7rem 1rem;
-  border-bottom: 1px solid $color-purple-light;
-  background: $color-bg-card;
-  color: $color-text-main;
+  border-bottom: 1px solid colors.$color-purple-light;
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
   font-size: 1rem;
 }
 
 .gamesTable tr:nth-child(even) td {
-  background: $color-purple-dark;
+  background: colors.$color-purple-dark;
 }
 
 .gamesTable tr:hover td {
-  background: $color-purple-hover;
-  color: $color-primary-light;
+  background: colors.$color-purple-hover;
+  color: colors.$color-primary-light;
   transition: background 0.18s, color 0.18s;
 }
 
@@ -90,42 +90,42 @@ section {
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 0.5rem;
-  background: $color-bg-card;
+  background: colors.$color-bg-card;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 16px #8a5be033;
 }
 
 .searchResultsTable th {
-  background: $color-purple-light;
-  color: $color-text-main;
+  background: colors.$color-purple-light;
+  color: colors.$color-text-main;
   font-size: 1.05rem;
   font-weight: 600;
   padding: 0.7rem 1rem;
-  border-bottom: 2px solid $color-purple-dark;
+  border-bottom: 2px solid colors.$color-purple-dark;
   text-align: left;
 }
 
 .searchResultsTable td {
   padding: 0.6rem 1rem;
-  border-bottom: 1px solid $color-purple-light;
-  background: $color-bg-card;
-  color: $color-text-main;
+  border-bottom: 1px solid colors.$color-purple-light;
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
   font-size: 0.98rem;
   transition: background 0.18s, color 0.18s;
 }
 
 .searchResultsTable tr:nth-child(even) td {
-  background: $color-purple-hover;
+  background: colors.$color-purple-hover;
 }
 
 .searchResultsTable tr:hover td {
-  background: $color-primary;
+  background: colors.$color-primary;
   color: #fff;
 }
 
 .publicSpace {
-  color: $color-text-main;
+  color: colors.$color-text-main;
 }
 
 .gamesTable th,
@@ -136,5 +136,5 @@ section h1,
 section h2,
 .searchBar input,
 .searchBar button {
-  color: $color-text-main;
+  color: colors.$color-text-main;
 }

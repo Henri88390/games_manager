@@ -1,8 +1,8 @@
-@import "../../../public/styles/colors.module.scss";
+@use "../../../public/styles/colors.module.scss";
 
 .container {
-  background: $color-bg-dark;
-  color: $color-text-main;
+  background: colors.$color-bg-dark;
+  color: colors.$color-text-main;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -16,12 +16,12 @@
   align-items: center;
   justify-content: center;
   min-height: 70vh;
-  color: $color-text-main;
+  color: colors.$color-text-main;
 }
 
 .goToUserArea {
-  background: $color-primary;
-  color: $color-text-main;
+  background: colors.$color-primary;
+  color: colors.$color-text-main;
   border: none;
   border-radius: 8px;
   padding: 0.8rem 2rem;
@@ -33,7 +33,7 @@
   transition: background 0.2s, box-shadow 0.2s;
 
   &:hover {
-    background: $color-primary-dark;
+    background: colors.$color-primary-dark;
     box-shadow: 0 4px 16px #000a;
   }
 }
