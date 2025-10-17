@@ -15,28 +15,50 @@ app.get("/", (_req, res) => {
   res.send("Hello World!");
 });
 
-app.post("/api/auth/signup", (req, res) => {
+app.post("/api/auth/signup", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: "Missing fields" });
-  if (users[email])
-    return res.status(409).json({ error: "User already exists" });
-  users[email] = { password };
-  res.json({ success: true });
+
+  try {
+    const existing = await pool.query(
+      "SELECT email FROM users WHERE email = $1",
+      [email]
+    );
+    if (existing.rows.length > 0)
+      return res.status(409).json({ error: "User already exists" });
+
+    await pool.query("INSERT INTO users (email, password) VALUES ($1, $2)", [
+      email,
+      password,
+    ]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to sign-up" });
+  }
 });
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: "Missing fields" });
-  if (!users[email] || users[email].password !== password)
-    return res.status(401).json({ error: "Invalid credentials" });
-  res.json({ success: true });
+
+  try {
+    const result = await pool.query(
+      "SELECT password FROM users WHERE email = $1",
+      [email]
+    );
+    if (result.rows.length === 0 || result.rows[0].password !== password)
+      return res.status(401).json({ error: "Invalid credentials" });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "An error as occured" });
+  }
 });
 
 // --- GAME ENDPOINTS ---
 
-// Get user's games (with optional search)
 app.get("/api/games", async (req, res) => {
   const email = req.query.email as string;
   if (!email) return res.status(400).json({ error: "Missing email" });
@@ -74,7 +96,7 @@ app.get("/api/games", async (req, res) => {
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "An error as occured" });
   }
 });
 
@@ -96,7 +118,7 @@ app.post("/api/games", async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "An error as occured" });
   }
 });
 
@@ -119,7 +141,7 @@ app.put("/api/games/:id", async (req, res) => {
       return res.status(404).json({ error: "Game not found" });
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "An error as occured" });
   }
 });
 
@@ -135,7 +157,7 @@ app.delete("/api/games/:id", async (req, res) => {
     ]);
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "An error as occured" });
   }
 });
 
@@ -150,7 +172,7 @@ app.get("/api/games/public/popular", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "An error as occured" });
   }
 });
 
@@ -164,7 +186,7 @@ app.get("/api/games/public/recent", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "An error as occured" });
   }
 });
 
@@ -180,7 +202,7 @@ app.get("/api/games/public/search", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "An error as occured" });
   }
 });
 
