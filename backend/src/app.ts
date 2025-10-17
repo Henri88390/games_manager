@@ -59,7 +59,7 @@ app.post("/api/games", (req, res) => {
   };
   userGames[email] = userGames[email] || [];
   userGames[email].push(game);
-  return res.status(201).json(game); // <-- Ensure a response is always sent
+  return res.status(201).json(game);
 });
 
 app.put("/api/games/:id", (req, res) => {

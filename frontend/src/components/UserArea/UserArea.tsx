@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { Game, UserAreaProps } from "../../types/types";
 import LoginHeader from "../LoginHeader/LoginHeader";
 import styles from "./UserArea.module.scss";
@@ -11,6 +12,16 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const [toast, setToast] = useState("");
   const [ratingError, setRatingError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sortField = searchParams.get("sortField") || "title";
+  const sortOrder = searchParams.get("sortOrder") || "asc";
+
+  const columns = [
+    { key: "title", label: "Title" },
+    { key: "rating", label: "Rating" },
+    { key: "timeSpent", label: "Time Spent (h)" },
+    { key: "dateAdded", label: "Date Added" },
+  ];
 
   useEffect(() => {
     setLoading(true);
@@ -116,6 +127,51 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     setEditingId(game.id);
   };
 
+  const getSortIcon = (field: string) => {
+    if (sortField === field) {
+      return sortOrder === "asc" ? (
+        <span className={styles.sortIcon} aria-label="sorted ascending">
+          ▼
+        </span>
+      ) : (
+        <span className={styles.sortIcon} aria-label="sorted descending">
+          ▲
+        </span>
+      );
+    }
+    return (
+      <span className={styles.sortIcon} aria-label="not sorted">
+        ⇅
+      </span>
+    );
+  };
+
+  const handleHeaderClick = (field: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (sortField === field) {
+      params.set("sortOrder", sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      params.set("sortField", field);
+      params.set("sortOrder", "asc");
+    }
+    setSearchParams(params);
+  };
+
+  const sortedGames = [...games].sort((a, b) => {
+    let result = 0;
+    if (sortField === "title") {
+      result = a.title.localeCompare(b.title);
+    } else if (sortField === "rating") {
+      result = a.rating - b.rating;
+    } else if (sortField === "timeSpent") {
+      result = a.timeSpent - b.timeSpent;
+    } else if (sortField === "dateAdded") {
+      result =
+        new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
+    }
+    return sortOrder === "asc" ? result : -result;
+  });
+
   return (
     <div className={styles.userAreaBackground}>
       <LoginHeader userEmail={userEmail} onLogout={onLogout} />
@@ -179,15 +235,21 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
         <table className={styles.gamesTable}>
           <thead>
             <tr>
-              <th>Title</th>
-              <th>Rating</th>
-              <th>Time Spent (h)</th>
-              <th>Date Added</th>
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className={styles.sortableHeader}
+                  onClick={() => handleHeaderClick(col.key)}
+                  style={{ cursor: "pointer", userSelect: "none" }}
+                >
+                  {col.label} {getSortIcon(col.key)}
+                </th>
+              ))}
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {games.map((game) => (
+            {sortedGames.map((game) => (
               <tr key={game.id}>
                 <td>{game.title}</td>
                 <td>{game.rating}</td>
