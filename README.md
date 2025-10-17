@@ -5,7 +5,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/privio.git
+git clone https://github.com/Henri88390/privio_test.git
 cd privio_test
 ```
 
@@ -16,7 +16,7 @@ cd privio_test
 Make sure you have [Docker](https://www.docker.com/) installed.
 
 ```bash
-docker-compose up
+docker-compose up -d
 ```
 
 This will start a PostgreSQL database with demo data.
