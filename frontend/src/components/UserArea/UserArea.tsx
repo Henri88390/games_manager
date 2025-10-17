@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { Game, UserAreaProps } from "../../types/types";
+import { SearchField, type Game, type UserAreaProps } from "../../types/types";
 import LoginHeader from "../LoginHeader/LoginHeader";
 import styles from "./UserArea.module.scss";
 
@@ -15,6 +15,11 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const sortField = searchParams.get("sortField") || "title";
   const sortOrder = searchParams.get("sortOrder") || "asc";
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const searchField = searchParams.get("searchField") || "title";
+  const searchValue = searchParams.get("searchValue") || "";
+  const [pendingSearchValue, setPendingSearchValue] = useState(searchValue);
 
   const columns = [
     { key: "title", label: "Title" },
@@ -23,11 +28,32 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     { key: "dateAdded", label: "Date Added" },
   ];
 
+  const triggerSearch = () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("searchField", searchField);
+    params.set("searchValue", searchInputRef.current?.value || "");
+    params.set("email", userEmail);
+    setSearchParams(params);
+
+    setLoading(true);
+    fetch(`http://localhost:3000/api/games?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => setGames(data))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    setPendingSearchValue(searchValue);
+  }, [searchValue]);
+
   useEffect(() => {
     setLoading(true);
-    fetch(
-      `http://localhost:3000/api/games?email=${encodeURIComponent(userEmail)}`
-    )
+    const params = new URLSearchParams({
+      email: userEmail,
+      searchField,
+      searchValue,
+    });
+    fetch(`http://localhost:3000/api/games?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => setGames(data))
       .finally(() => setLoading(false));
@@ -157,6 +183,35 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     setSearchParams(params);
   };
 
+  const handleSearchFieldChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("searchField", e.target.value);
+    setSearchParams(params);
+    setPendingSearchValue("");
+  };
+
+  const handleSearchValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("searchValue", e.target.value);
+    setSearchParams(params);
+  };
+
+  const handleClear = () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("searchValue", "");
+    setSearchParams(params);
+    setPendingSearchValue("");
+    triggerSearch();
+    if (searchInputRef.current) searchInputRef.current.value = "";
+    setLoading(true);
+    fetch(
+      `http://localhost:3000/api/games?email=${encodeURIComponent(userEmail)}`
+    )
+      .then((res) => res.json())
+      .then((data) => setGames(data))
+      .finally(() => setLoading(false));
+  };
+
   const sortedGames = [...games].sort((a, b) => {
     let result = 0;
     if (sortField === "title") {
@@ -175,6 +230,87 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   return (
     <div className={styles.userAreaBackground}>
       <LoginHeader userEmail={userEmail} onLogout={onLogout} />
+
+      <div className={styles.searchInputWrapper}>
+        <div className={styles.searchInputGroup}>
+          <input
+            ref={searchInputRef}
+            className={`${styles.input} ${styles.searchInput}`}
+            type={
+              searchField === SearchField.DateAdded
+                ? "date"
+                : searchField === SearchField.Rating ||
+                  searchField === SearchField.TimeSpent
+                ? "number"
+                : "text"
+            }
+            placeholder={`Search by ${searchField}`}
+            value={pendingSearchValue}
+            onChange={handleSearchValueChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                triggerSearch();
+              }
+            }}
+          />
+          {pendingSearchValue && (
+            <button
+              className={styles.clearButton}
+              type="button"
+              onClick={handleClear}
+              aria-label="Clear filter"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <line
+                  x1="4"
+                  y1="4"
+                  x2="12"
+                  y2="12"
+                  stroke="#8a5be0"
+                  strokeWidth="2"
+                />
+                <line
+                  x1="12"
+                  y1="4"
+                  x2="4"
+                  y2="12"
+                  stroke="#8a5be0"
+                  strokeWidth="2"
+                />
+              </svg>
+            </button>
+          )}
+          <button
+            className={styles.searchButton}
+            type="button"
+            onClick={triggerSearch}
+            aria-label="Search"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="8" cy="8" r="7" stroke="#8a5be0" strokeWidth="2" />
+              <line
+                x1="13"
+                y1="13"
+                x2="17"
+                y2="17"
+                stroke="#8a5be0"
+                strokeWidth="2"
+              />
+            </svg>
+          </button>
+        </div>
+        <select
+          className={styles.input}
+          value={searchField}
+          onChange={handleSearchFieldChange}
+        >
+          <option value="title">Title</option>
+          <option value="rating">Rating</option>
+          <option value="timeSpent">Time Spent</option>
+          <option value="dateAdded">Date Added</option>
+        </select>
+      </div>
+
       <h2 className={styles.title}>Your Games</h2>
       {toast && <div className={styles.toast}>{toast}</div>}
       {error && <div className={styles.error}>{error}</div>}

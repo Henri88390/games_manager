@@ -6,6 +6,15 @@ export type Game = {
   dateAdded: string;
 };
 
+export const SearchField = {
+  Title: "title",
+  Rating: "rating",
+  TimeSpent: "timeSpent",
+  DateAdded: "dateAdded",
+} as const;
+
+export type SearchField = (typeof SearchField)[keyof typeof SearchField];
+
 export interface UserAreaProps {
   userEmail: string;
   onLogout: () => void;

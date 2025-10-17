@@ -5,3 +5,10 @@ export type Game = {
   timeSpent: number;
   dateAdded: string;
 };
+
+export enum SearchField {
+  Title = "title",
+  Rating = "rating",
+  TimeSpent = "timeSpent",
+  DateAdded = "dateAdded",
+}

@@ -1,6 +1,6 @@
 import cors from "cors";
 import express from "express";
-import { Game } from "./types/game";
+import { Game, SearchField } from "./types/game";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,7 +38,30 @@ const userGames: { [email: string]: Game[] } = {};
 app.get("/api/games", (req, res) => {
   const email = req.query.email as string;
   if (!email) return res.status(400).json({ error: "Missing email" });
-  res.json(userGames[email] || []);
+
+  let games = userGames[email] || [];
+
+  const searchField = req.query.searchField as string;
+  const searchValue = req.query.searchValue as string;
+
+  if (searchField && searchValue) {
+    games = games.filter((game) => {
+      switch (searchField) {
+        case SearchField.Title:
+          return game.title.toLowerCase().includes(searchValue.toLowerCase());
+        case SearchField.Rating:
+          return String(game.rating) === searchValue;
+        case SearchField.TimeSpent:
+          return String(game.timeSpent) === searchValue;
+        case SearchField.DateAdded:
+          return game.dateAdded.slice(0, 10) === searchValue;
+        default:
+          return true;
+      }
+    });
+  }
+
+  res.json(games);
 });
 
 app.post("/api/games", (req, res) => {
