@@ -1,0 +1,104 @@
+@import "../../../public/styles/colors.module.scss";
+
+.container {
+  background: $color-bg-dark;
+  color: $color-text-main;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 350px;
+  margin: 3rem auto;
+  box-shadow: 0 2px 16px #000a;
+}
+.title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+.input {
+  width: 100%;
+  padding: 0.7rem;
+  margin-bottom: 1rem;
+  background: $color-bg-card;
+  color: $color-text-main;
+  border: none;
+  border-radius: 6px;
+}
+.button {
+  width: 100%;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.button:hover {
+  background: $color-purple-hover;
+}
+.signIn {
+  background: $color-purple-dark;
+  color: $color-text-main;
+}
+
+.signIn:hover {
+  background: $color-purple-hover;
+}
+
+.signUp {
+  background: $color-purple;
+  color: $color-text-main;
+}
+
+.signUp:hover {
+  background: $color-purple-light;
+}
+
+.error {
+  color: $color-error;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.logout {
+  background: $color-error;
+  color: #fff;
+  margin-top: 1rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.7rem;
+  margin-bottom: 1rem;
+  background: $color-bg-card;
+  color: $color-text-main;
+  border: 2px solid $color-bg-card;
+  border-radius: 6px;
+  transition: border-color 0.2s;
+}
+
+.inputError {
+  border-color: $color-error;
+}
+
+.inputErrorMsg {
+  color: $color-error;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  margin-top: -0.7rem;
+  text-align: left;
+}
+
+.invalidCreds {
+  color: #ff4d4f;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  margin-top: -0.7rem;
+  text-align: left;
+}
+
+.error {
+  color: #ff4d4f;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1rem;
+}

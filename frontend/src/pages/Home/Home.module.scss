@@ -1,0 +1,117 @@
+@import "../../../public/styles/colors.module.scss";
+
+.container {
+  background: $color-bg-dark;
+  color: $color-text-main;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.homeBackground {
+  background: #181a20;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 2rem;
+  background: #22232b;
+  box-shadow: 0 2px 8px #0006;
+}
+
+.logo {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: $color-text-main;
+  letter-spacing: 1px;
+}
+
+.userSection {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #4a5568;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 0;
+}
+
+.avatar:hover {
+  border-color: $color-purple-hover;
+  box-shadow: 0 0 0 2px $color-purple-hover;
+}
+
+.menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #22232b;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px #000a;
+  padding: 1rem 1.2rem;
+  min-width: 260px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.email {
+  color: #cccccc;
+  font-size: 0.95rem;
+  margin-bottom: 0.7rem;
+  word-break: break-all;
+  text-align: left;
+  width: 100%;
+  display: block;
+  padding-right: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout {
+  background: $color-purple-dark;
+  color: #f3f3f3;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.95rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  margin-left: 0;
+  align-self: flex-end;
+  margin-top: 0.5rem;
+}
+
+.logout:hover {
+  background: $color-purple-hover;
+  box-shadow: 0 2px 8px #6c3eb755;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  color: $color-text-main;
+}
