@@ -6,6 +6,7 @@ import Home from "./pages/Home/Home";
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("userEmail");
@@ -14,6 +15,7 @@ function App() {
       setLoggedIn(true);
       setUserEmail(storedEmail);
     }
+    setCheckingSession(false);
   }, []);
 
   const handleLogin = (email: string) => {
@@ -29,6 +31,10 @@ function App() {
     localStorage.removeItem("loggedIn");
     localStorage.removeItem("userEmail");
   };
+
+  if (checkingSession) {
+    return <div className={styles.appBackground}>Loading...</div>;
+  }
 
   return (
     <div className={styles.appBackground}>
