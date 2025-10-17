@@ -1,43 +1,51 @@
-# Express TypeScript Server
+# Privio Local Development Setup
 
-This project is a simple Express server built with TypeScript. It serves as a basic template for developing applications using Express and TypeScript.
+## 1. Start the Local Database
 
-## Project Structure
+Make sure you have [Docker](https://www.docker.com/) installed.
 
-```
-backend
-├── src
-│   ├── app.ts          # Entry point of the application
-│   └── types
-│       └── index.ts    # Custom types and interfaces
-├── package.json         # NPM dependencies and scripts
-├── tsconfig.json        # TypeScript configuration
-├── nodemon.json         # Nodemon configuration
-└── README.md            # Project documentation
+```bash
+docker-compose up -d
 ```
 
-## Setup Instructions
+This will start a PostgreSQL database with demo data.
 
-1. **Clone the repository:**
-   ```
-   git clone <repository-url>
-   cd backend
-   ```
+## 2. Configure the Backend
 
-2. **Install dependencies:**
-   ```
-   npm install
-   ```
+Create a `.env` file in `/backend`:
 
-3. **Run the server:**
-   ```
-   npm run dev
-   ```
+```
+DATABASE_URL=postgresql://privio:privio@localhost:5432/privio
+```
 
-## Usage
+## 3. Run the Backend
 
-Once the server is running, you can access the basic endpoint by navigating to `http://localhost:3000` in your web browser. You should see a response indicating that the server is running.
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-## License
+## 4. Run the Frontend
 
-This project is licensed under the MIT License.
+```bash
+cd frontend
+npm install
+npm start
+```
+
+## 5. Stop the Database
+
+```bash
+docker-compose down
+```
+
+---
+
+**Demo login:**  
+Email: `demo@privio.com`  
+Password: _(set up in your auth system or use signup)_
+
+---
+
+\*\*Now anyone can set up your project and see demo games with just

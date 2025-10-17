@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: privio
+      POSTGRES_USER: privio
+      POSTGRES_PASSWORD: privio
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://privio:privio@db:5432/privio
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    command: npm run dev
+
+volumes:
+  db_data:

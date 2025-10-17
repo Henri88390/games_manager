@@ -48,7 +48,7 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
                 <tr key={g.id}>
                   <td>{g.title}</td>
                   <td>{g.rating}</td>
-                  <td>{g.timeSpent}</td>
+                  <td>{g.timespent}</td>
                 </tr>
               ))}
             </tbody>
@@ -69,7 +69,7 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
                 <tr key={g.id}>
                   <td>{g.title}</td>
                   <td>{g.rating}</td>
-                  <td>{g.timeSpent}</td>
+                  <td>{g.timespent}</td>
                 </tr>
               ))}
             </tbody>
@@ -100,7 +100,7 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
                 <tr key={g.id}>
                   <td>{g.title}</td>
                   <td>{g.rating}</td>
-                  <td>{g.timeSpent}</td>
+                  <td>{g.timespent}</td>
                   <td>{new Date(g.dateAdded).toLocaleDateString()}</td>
                 </tr>
               ))}

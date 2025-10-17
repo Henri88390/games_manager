@@ -148,7 +148,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     setForm({
       title: game.title,
       rating: game.rating,
-      timeSpent: game.timeSpent,
+      timeSpent: game.timespent,
     });
     setEditingId(game.id);
   };
@@ -219,7 +219,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     } else if (sortField === "rating") {
       result = a.rating - b.rating;
     } else if (sortField === "timeSpent") {
-      result = a.timeSpent - b.timeSpent;
+      result = a.timespent - b.timespent;
     } else if (sortField === "dateAdded") {
       result =
         new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
@@ -390,7 +390,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
                 <tr key={game.id}>
                   <td>{game.title}</td>
                   <td>{game.rating}</td>
-                  <td>{game.timeSpent}</td>
+                  <td>{game.timespent}</td>
                   <td>{new Date(game.dateAdded).toLocaleDateString()}</td>
                   <td>
                     <button

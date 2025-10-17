@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
-import { Game, SearchField } from "./types/game";
+import { pool } from "./db";
+import { SearchField } from "./types/game";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +22,7 @@ app.post("/api/auth/signup", (req, res) => {
   if (users[email])
     return res.status(409).json({ error: "User already exists" });
   users[email] = { password };
-  res.status(201).json({ message: "User created" });
+  res.json({ success: true });
 });
 
 app.post("/api/auth/login", (req, res) => {
@@ -30,41 +31,54 @@ app.post("/api/auth/login", (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
   if (!users[email] || users[email].password !== password)
     return res.status(401).json({ error: "Invalid credentials" });
-  res.json({ message: "Login successful" });
+  res.json({ success: true });
 });
 
-const userGames: { [email: string]: Game[] } = {};
+// --- GAME ENDPOINTS ---
 
-app.get("/api/games", (req, res) => {
+// Get user's games (with optional search)
+app.get("/api/games", async (req, res) => {
   const email = req.query.email as string;
   if (!email) return res.status(400).json({ error: "Missing email" });
-
-  let games = userGames[email] || [];
 
   const searchField = req.query.searchField as string;
   const searchValue = req.query.searchValue as string;
 
+  let query = "SELECT * FROM games WHERE email = $1";
+  let params: any[] = [email];
+
   if (searchField && searchValue) {
-    games = games.filter((game) => {
-      switch (searchField) {
-        case SearchField.Title:
-          return game.title.toLowerCase().includes(searchValue.toLowerCase());
-        case SearchField.Rating:
-          return String(game.rating) === searchValue;
-        case SearchField.TimeSpent:
-          return String(game.timeSpent) === searchValue;
-        case SearchField.DateAdded:
-          return game.dateAdded.slice(0, 10) === searchValue;
-        default:
-          return true;
-      }
-    });
+    switch (searchField) {
+      case SearchField.Title:
+        query += " AND LOWER(title) LIKE $2";
+        params.push(`%${searchValue.toLowerCase()}%`);
+        break;
+      case SearchField.Rating:
+        query += " AND rating = $2";
+        params.push(Number(searchValue));
+        break;
+      case SearchField.TimeSpent:
+        query += " AND timeSpent = $2";
+        params.push(Number(searchValue));
+        break;
+      case SearchField.DateAdded:
+        query += " AND TO_CHAR(dateAdded, 'YYYY-MM-DD') = $2";
+        params.push(searchValue);
+        break;
+      default:
+        break;
+    }
   }
 
-  res.json(games);
+  try {
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
-app.post("/api/games", (req, res) => {
+app.post("/api/games", async (req, res) => {
   const { email, title, rating, timeSpent } = req.body;
   if (!email || !title || rating == null || timeSpent == null)
     return res.status(400).json({ error: "Missing fields" });
@@ -73,70 +87,101 @@ app.post("/api/games", (req, res) => {
   if (typeof timeSpent !== "number" || timeSpent < 0)
     return res.status(400).json({ error: "Time spent must be >= 0" });
 
-  const game = {
-    id: Date.now().toString(),
-    title,
-    rating,
-    timeSpent,
-    dateAdded: new Date().toISOString(),
-  };
-  userGames[email] = userGames[email] || [];
-  userGames[email].push(game);
-  return res.status(201).json(game);
+  try {
+    const result = await pool.query(
+      `INSERT INTO games (email, title, rating, timeSpent, dateAdded)
+       VALUES ($1, $2, $3, $4, NOW())
+       RETURNING *`,
+      [email, title, rating, timeSpent]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
-app.put("/api/games/:id", (req, res) => {
+app.put("/api/games/:id", async (req, res) => {
   const { email, title, rating, timeSpent } = req.body;
   const { id } = req.params;
   if (!email || !id) return res.status(400).json({ error: "Missing fields" });
-  const games = userGames[email] || [];
-  const game = games.find((g) => g.id === id);
-  if (!game) return res.status(404).json({ error: "Game not found" });
-  if (title) game.title = title;
-  if (rating != null) game.rating = rating;
-  if (timeSpent != null) game.timeSpent = timeSpent;
-  res.json(game);
+
+  try {
+    const result = await pool.query(
+      `UPDATE games SET
+        title = COALESCE($2, title),
+        rating = COALESCE($3, rating),
+        timeSpent = COALESCE($4, timeSpent)
+       WHERE id = $1 AND email = $5
+       RETURNING *`,
+      [id, title, rating, timeSpent, email]
+    );
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Game not found" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
-function getAllGames(): Game[] {
-  return Object.values(userGames).flat();
-}
-
-app.get("/api/games/public/popular", (req, res) => {
-  const allGames = getAllGames();
-  const popular = [...allGames]
-    .sort((a, b) => {
-      if (b.rating !== a.rating) return b.rating - a.rating;
-      return b.timeSpent - a.timeSpent;
-    })
-    .slice(0, 10);
-  res.json(popular);
-});
-
-app.get("/api/games/public/recent", (req, res) => {
-  const allGames = getAllGames();
-  const recent = [...allGames]
-    .sort(
-      (a, b) =>
-        new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
-    )
-    .slice(0, 10);
-  res.json(recent);
-});
-
-app.get("/api/games/public/search", (req, res) => {
-  const title = ((req.query.title as string) || "").toLowerCase();
-  const allGames = getAllGames();
-  const results = allGames.filter((g) => g.title.toLowerCase().includes(title));
-  res.json(results.slice(0, 20)); // limit results
-});
-
-app.delete("/api/games/:id", (req, res) => {
+app.delete("/api/games/:id", async (req, res) => {
   const { email } = req.body;
   const { id } = req.params;
   if (!email || !id) return res.status(400).json({ error: "Missing fields" });
-  userGames[email] = (userGames[email] || []).filter((g) => g.id !== id);
-  res.json({ success: true });
+
+  try {
+    await pool.query("DELETE FROM games WHERE id = $1 AND email = $2", [
+      id,
+      email,
+    ]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// --- PUBLIC ENDPOINTS ---
+app.get("/api/games/public/popular", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, title, rating, timeSpent, dateAdded
+       FROM games
+       ORDER BY rating DESC, timeSpent DESC
+       LIMIT 10`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/api/games/public/recent", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, title, rating, timeSpent, dateAdded
+       FROM games
+       ORDER BY dateAdded DESC
+       LIMIT 10`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/api/games/public/search", async (req, res) => {
+  const title = ((req.query.title as string) || "").toLowerCase();
+  try {
+    const result = await pool.query(
+      `SELECT id, title, rating, timeSpent, dateAdded
+       FROM games
+       WHERE LOWER(title) LIKE $1
+       LIMIT 20`,
+      [`%${title}%`]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 app.listen(PORT, () => {
