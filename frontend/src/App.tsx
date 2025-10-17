@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+} from "react-router-dom";
 import styles from "./App.module.scss";
+import UserArea from "./components/UserArea/UserArea";
 import Auth from "./pages/Auth/Auth";
 import Home from "./pages/Home/Home";
 
@@ -38,11 +45,32 @@ function App() {
 
   return (
     <div className={styles.appBackground}>
-      {!loggedIn ? (
-        <Auth onLogin={handleLogin} />
-      ) : (
-        <Home userEmail={userEmail} onLogout={handleLogout} />
-      )}
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              !loggedIn ? (
+                <Auth onLogin={handleLogin} />
+              ) : (
+                <Home userEmail={userEmail} onLogout={handleLogout} />
+              )
+            }
+          />
+          <Route
+            path="/user-area"
+            element={
+              loggedIn ? (
+                <UserArea userEmail={userEmail} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
+          {/* Redirect unknown routes to home */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
     </div>
   );
 }

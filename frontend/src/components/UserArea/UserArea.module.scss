@@ -1,0 +1,205 @@
+@import "../../../public/styles/colors.module.scss";
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: $color-purple-light;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.input {
+  background: $color-bg-card;
+  color: #cccccc;
+  border: 2px solid $color-purple-dark;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  &::placeholder {
+    color: #cccccc;
+    opacity: 1;
+  }
+}
+
+.input[type="number"][placeholder="Rating"] {
+  min-width: 120px;
+  width: 120px;
+}
+
+.button {
+  background: $color-primary;
+  color: $color-text-main;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.button:hover {
+  background: $color-primary-dark;
+}
+
+.editButton {
+  background: $color-secondary;
+  color: $color-text-main;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.editButton:hover {
+  background: $color-secondary-dark;
+}
+
+.deleteButton,
+.cancelButton {
+  background: $color-danger;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.deleteButton:hover,
+.cancelButton:hover {
+  background: $color-danger-hover;
+}
+
+.loading {
+  text-align: center;
+  color: $color-purple-light;
+  font-size: 1.2rem;
+}
+
+.gamesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gameItem {
+  background: $color-bg-card;
+  color: $color-text-main;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px #000a;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.gamesTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+  background: $color-bg-card;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gamesTable th,
+.gamesTable td {
+  padding: 0.8rem 1rem;
+  color: #cccccc;
+  font-weight: normal;
+}
+
+.gamesTable th {
+  background: $color-purple-dark;
+  color: $color-purple-light;
+  font-weight: bold;
+}
+
+.gamesTable tr {
+  border-bottom: 1px solid #222;
+}
+
+.editButton,
+.deleteButton {
+  margin-right: 0.5rem;
+}
+
+.gamesTable th,
+.gamesTable td {
+  padding: 0.8rem 1rem;
+  color: #cccccc;
+  font-weight: normal;
+  text-align: left;
+}
+
+.gamesTable th:last-child,
+.gamesTable td:last-child {
+  text-align: left;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+}
+
+.inputError {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  width: max-content;
+  min-width: 120px;
+  max-width: 220px;
+  white-space: nowrap;
+  color: $color-error;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+  transition: opacity 0.2s;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.toast {
+  position: fixed;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $color-purple-dark;
+  color: $color-purple-light;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-shadow: 0 2px 16px #000a;
+  z-index: 1000;
+  animation: fadeInOut 2s;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
