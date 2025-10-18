@@ -9,9 +9,9 @@ git clone https://github.com/Henri88390/games_manager.git
 cd games_manager
 ```
 
-## 2. Backend Setup
+---
 
-### 2.1 Start the Application with Docker
+## 2. Backend Setup
 
 Make sure you have [Docker](https://www.docker.com/) installed.
 
