@@ -1,4 +1,4 @@
-# Game Manager Local Development Setup
+# Setup
 
 ---
 
@@ -33,7 +33,7 @@ The setup is fully automated and includes:
 
 ---
 
-### 3. Run the Frontend
+## 3. Run the Frontend
 
 ```bash
 cd frontend
@@ -67,12 +67,6 @@ VITE_PAGINATION_LIMIT=10
 
 ```bash
 docker-compose down
-```
-
-## Deleting the database volumes
-
-```bash
-docker-compose down -v
 ```
 
 ---
