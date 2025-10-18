@@ -5,8 +5,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Henri88390/game_manager.git
-cd game_manager
+git clone https://github.com/Henri88390/games_manager.git
+cd games_manager
 ```
 
 ## 2. Backend Setup
