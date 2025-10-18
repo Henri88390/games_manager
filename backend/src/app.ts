@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import type { Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import { pool } from "./db";
@@ -44,11 +45,10 @@ app.use(express.json());
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.post("/api/auth/signup", async (req: any, res: any) => {
-  const { email, password } = req.body;
+app.post("/api/auth/signup", async (req: Request, res: Response) => {
+  const { email, password } = req.body as { email?: string; password?: string };
   if (!email || !password)
     return res.status(400).json({ error: "Missing fields" });
-
   try {
     const existing = await pool.query(
       "SELECT email FROM users WHERE email = $1",
@@ -67,11 +67,10 @@ app.post("/api/auth/signup", async (req: any, res: any) => {
   }
 });
 
-app.post("/api/auth/login", async (req: any, res: any) => {
-  const { email, password } = req.body;
+app.post("/api/auth/login", async (req: Request, res: Response) => {
+  const { email, password } = req.body as { email?: string; password?: string };
   if (!email || !password)
     return res.status(400).json({ error: "Missing fields" });
-
   try {
     const result = await pool.query(
       "SELECT password FROM users WHERE email = $1",
@@ -187,8 +186,14 @@ app.get("/api/games", async (req: any, res: any) => {
   }
 });
 
-app.post("/api/games", async (req, res) => {
-  const { email, title, rating, timeSpent, imagePath } = req.body;
+app.post("/api/games", async (req: Request, res: Response) => {
+  const { email, title, rating, timeSpent, imagePath } = req.body as {
+    email?: string;
+    title?: string;
+    rating?: number;
+    timeSpent?: number;
+    imagePath?: string | null;
+  };
   if (!email || !title || rating == null || timeSpent == null)
     return res.status(400).json({ error: "Missing fields" });
   if (typeof rating !== "number" || rating < 1 || rating > 5)
@@ -209,9 +214,15 @@ app.post("/api/games", async (req, res) => {
   }
 });
 
-app.put("/api/games/:id", async (req, res) => {
-  const { email, title, rating, timeSpent, imagePath } = req.body;
-  const { id } = req.params;
+app.put("/api/games/:id", async (req: Request, res: Response) => {
+  const { email, title, rating, timeSpent, imagePath } = req.body as {
+    email?: string;
+    title?: string | null;
+    rating?: number | null;
+    timeSpent?: number | null;
+    imagePath?: string | null;
+  };
+  const { id } = req.params as { id: string };
   if (!email || !id) return res.status(400).json({ error: "Missing fields" });
 
   try {
@@ -233,9 +244,9 @@ app.put("/api/games/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/games/:id", async (req, res) => {
-  const { email } = req.body;
-  const { id } = req.params;
+app.delete("/api/games/:id", async (req: Request, res: Response) => {
+  const { email } = req.body as { email?: string };
+  const { id } = req.params as { id: string };
   if (!email || !id) return res.status(400).json({ error: "Missing fields" });
 
   try {
@@ -250,7 +261,7 @@ app.delete("/api/games/:id", async (req, res) => {
 });
 
 // --- PUBLIC ENDPOINTS ---
-app.get("/api/games/public/popular", async (req, res) => {
+app.get("/api/games/public/popular", async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
   const offset = (page - 1) * limit;
@@ -274,7 +285,7 @@ app.get("/api/games/public/popular", async (req, res) => {
   }
 });
 
-app.get("/api/games/public/recent", async (req, res) => {
+app.get("/api/games/public/recent", async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
   const offset = (page - 1) * limit;
@@ -298,7 +309,7 @@ app.get("/api/games/public/recent", async (req, res) => {
   }
 });
 
-app.get("/api/games/public/search", async (req, res) => {
+app.get("/api/games/public/search", async (req: Request, res: Response) => {
   const title = ((req.query.title as string) || "").toLowerCase();
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
@@ -326,8 +337,7 @@ app.get("/api/games/public/search", async (req, res) => {
   }
 });
 
-// public endpoint to list games by user email (paginated)
-app.get("/api/games/public/by-user", async (req, res) => {
+app.get("/api/games/public/by-user", async (req: Request, res: Response) => {
   const email = (req.query.email as string) || "";
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
@@ -359,7 +369,7 @@ app.get("/api/games/public/by-user", async (req, res) => {
 });
 
 // --- user statistics ---
-app.get("/api/games/stats", async (req, res) => {
+app.get("/api/games/stats", async (req: Request, res: Response) => {
   const email = req.query.email as string;
   if (!email) return res.status(400).json({ error: "Missing email" });
 
@@ -386,7 +396,7 @@ app.get("/api/games/stats", async (req, res) => {
 });
 
 // --- global statistics ---
-app.get("/api/games/public/stats", async (_req, res) => {
+app.get("/api/games/public/stats", async (_req: Request, res: Response) => {
   try {
     const stats = await pool.query(
       `SELECT
