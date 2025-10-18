@@ -1,12 +1,12 @@
-# Privio Local Development Setup
+# Game Manager Local Development Setup
 
 ---
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Henri88390/privio_test.git
-cd privio_test
+git clone https://github.com/Henri88390/game_manager.git
+cd game_manager
 ```
 
 ## 2. Backend Setup
