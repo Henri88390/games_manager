@@ -4,6 +4,7 @@ export type Game = {
   rating: number;
   timespent: number;
   dateadded: string;
+  image_path?: string;
 };
 
 export const SearchField = {

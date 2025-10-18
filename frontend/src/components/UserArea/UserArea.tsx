@@ -19,8 +19,11 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const [form, setForm] = useState({ title: "", rating: 0, timeSpent: 0 });
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
   const [ratingError, setRatingError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploadedImagePath, setUploadedImagePath] = useState<string>("");
   const [searchParams, setSearchParams] = useSearchParams();
   const sortField = searchParams.get("sortField") || "title";
   const sortOrder = searchParams.get("sortOrder") || "asc";
@@ -28,8 +31,10 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const searchValue = searchParams.get("searchValue") || "";
   const [pendingSearchValue, setPendingSearchValue] = useState(searchValue);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const columns = [
+    { key: "image", label: "Image" },
     { key: "title", label: "Title" },
     { key: "rating", label: "Rating" },
     { key: "timeSpent", label: "Time Spent (h)" },
@@ -87,18 +92,51 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    let imagePath = uploadedImagePath;
+
+    // Upload image if selected
+    if (selectedImage) {
+      try {
+        const formData = new FormData();
+        formData.append("image", selectedImage);
+
+        const uploadResponse = await fetch(
+          "http://localhost:3000/api/games/upload-image",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          imagePath = uploadData.imagePath;
+          setUploadedImagePath(imagePath);
+        } else {
+          setError("Failed to upload image");
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        setError("Error uploading image");
+        setLoading(false);
+        return;
+      }
+    }
+
     let response;
     if (editingId) {
       response = await fetch(`http://localhost:3000/api/games/${editingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, ...form }),
+        body: JSON.stringify({ email: userEmail, ...form, imagePath }),
       });
     } else {
       response = await fetch("http://localhost:3000/api/games", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, ...form }),
+        body: JSON.stringify({ email: userEmail, ...form, imagePath }),
       });
     }
     const data = await response.json();
@@ -106,16 +144,20 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
       const errorMessage = data.error || "An error occurred";
       setError(errorMessage);
       setToast(errorMessage);
+      setToastType("error");
       setTimeout(() => setToast(""), 2000);
       setLoading(false);
       return;
     }
     setForm({ title: "", rating: 0, timeSpent: 0 });
+    setSelectedImage(null);
+    setUploadedImagePath("");
     setEditingId(null);
     setError("");
     setToast(
       editingId ? "Game updated successfully!" : "Game added successfully!"
     );
+    setToastType("success");
     setTimeout(() => setToast(""), 2000);
 
     fetchGames();
@@ -135,14 +177,17 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
       if (!response.ok) {
         const errorMessage = data.error || "Failed to delete game";
         setToast(errorMessage);
+        setToastType("error");
         setTimeout(() => setToast(""), 2000);
         setLoading(false);
         return;
       }
       setToast("Game deleted successfully!");
+      setToastType("success");
       setTimeout(() => setToast(""), 2000);
     } catch {
       setToast("Network error while deleting game");
+      setToastType("error");
       setTimeout(() => setToast(""), 2000);
     }
     fetchGames();
@@ -155,6 +200,8 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
       timeSpent: game.timespent,
     });
     setEditingId(game.id);
+    setUploadedImagePath(game.image_path || "");
+    setSelectedImage(null); // Reset file input
   };
 
   const getSortIcon = (field: string) => {
@@ -296,58 +343,87 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
         </div>
 
         <h2 className={styles.title}>Your Games</h2>
-        {toast && <Toast message={toast} visible={!!toast} />}
+        {toast && <Toast message={toast} visible={!!toast} type={toastType} />}
         {error && <div className={styles.error}>{error}</div>}
         <form className={styles.form} onSubmit={handleSubmit}>
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Title"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            required
-          />
-          <div className={styles.inputGroup}>
+          <div className={styles.formRow}>
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="Title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              required
+            />
+            <div className={styles.inputGroup}>
+              <input
+                className={styles.input}
+                type="number"
+                min={0}
+                max={5}
+                placeholder="Rating"
+                value={form.rating === 0 ? "" : form.rating}
+                onChange={handleRatingChange}
+                required
+              />
+              <span className={styles.inputError}>
+                {ratingError ? ratingError : "\u00A0"}
+              </span>
+            </div>
             <input
               className={styles.input}
               type="number"
               min={0}
-              max={5}
-              placeholder="Rating"
-              value={form.rating === 0 ? "" : form.rating}
-              onChange={handleRatingChange}
+              placeholder="Time spent"
+              value={form.timeSpent === 0 ? "" : form.timeSpent}
+              onChange={(e) =>
+                setForm({ ...form, timeSpent: Number(e.target.value) })
+              }
               required
             />
-            <span className={styles.inputError}>
-              {ratingError ? ratingError : "\u00A0"}
-            </span>
+            <div className={styles.imageInputGroup}>
+              <input
+                ref={fileInputRef}
+                className={styles.hiddenFileInput}
+                type="file"
+                accept="image/*"
+                onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+              />
+              <button
+                type="button"
+                className={styles.fileButton}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {editingId ? "Change Image" : "Choose Image"}
+              </button>
+              <span className={styles.fileInputHelp}>
+                {selectedImage
+                  ? `Selected: ${selectedImage.name}`
+                  : editingId && uploadedImagePath
+                  ? `Current: ${uploadedImagePath}`
+                  : "Max 5MB, JPG/PNG/GIF"}
+              </span>
+            </div>
           </div>
-          <input
-            className={styles.input}
-            type="number"
-            min={0}
-            placeholder="Time spent"
-            value={form.timeSpent === 0 ? "" : form.timeSpent}
-            onChange={(e) =>
-              setForm({ ...form, timeSpent: Number(e.target.value) })
-            }
-            required
-          />
-          <button className={styles.button} type="submit" disabled={loading}>
-            {editingId ? "Update Game" : "Add Game"}
-          </button>
-          {editingId && (
-            <button
-              className={styles.cancelButton}
-              type="button"
-              onClick={() => {
-                setEditingId(null);
-                setForm({ title: "", rating: 1, timeSpent: 0 });
-              }}
-            >
-              Cancel
+          <div className={styles.buttonRow}>
+            <button className={styles.button} type="submit" disabled={loading}>
+              {editingId ? "Update Game" : "Add Game"}
             </button>
-          )}
+            {editingId && (
+              <button
+                className={styles.cancelButton}
+                type="button"
+                onClick={() => {
+                  setEditingId(null);
+                  setForm({ title: "", rating: 1, timeSpent: 0 });
+                  setSelectedImage(null);
+                  setUploadedImagePath("");
+                }}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
         {loading ? (
           <div className={styles.loading}>Loading...</div>
@@ -372,6 +448,19 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
               <tbody>
                 {games.map((game) => (
                   <tr key={game.id}>
+                    <td>
+                      {game.image_path ? (
+                        <img
+                          src={`http://localhost:3000/uploads/${game.image_path}`}
+                          alt={game.title}
+                          className={styles.gameImage}
+                        />
+                      ) : (
+                        <div className={styles.noImagePlaceholder}>
+                          No Image
+                        </div>
+                      )}
+                    </td>
                     <td>{game.title}</td>
                     <td>{game.rating}</td>
                     <td>{game.timespent}</td>

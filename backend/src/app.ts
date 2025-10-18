@@ -1,15 +1,50 @@
 import cors from "cors";
 import express from "express";
+import multer from "multer";
+import path from "path";
 import { pool } from "./db";
 import { SearchField } from "./types/game";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req: any, file: any, cb: any) => {
+    cb(null, "uploads/");
+  },
+  filename: (req: any, file: any, cb: any) => {
+    // Generate unique filename with timestamp and original extension
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max file size
+  },
+  fileFilter: (req: any, file: any, cb: any) => {
+    // Only allow image files
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed!"));
+    }
+  },
+});
+
 app.use(cors());
 app.use(express.json());
 
-app.post("/api/auth/signup", async (req, res) => {
+// Serve static files from uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+app.post("/api/auth/signup", async (req: any, res: any) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: "Missing fields" });
@@ -32,7 +67,7 @@ app.post("/api/auth/signup", async (req, res) => {
   }
 });
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", async (req: any, res: any) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: "Missing fields" });
@@ -51,8 +86,27 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+// --- IMAGE UPLOAD ENDPOINT ---
+app.post(
+  "/api/games/upload-image",
+  upload.single("image"),
+  async (req: any, res: any) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Return the file path
+      const imagePath = req.file.filename;
+      res.json({ imagePath });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to upload image" });
+    }
+  }
+);
+
 // --- GAME ENDPOINTS ---
-app.get("/api/games", async (req, res) => {
+app.get("/api/games", async (req: any, res: any) => {
   const email = req.query.email as string;
   if (!email) return res.status(400).json({ error: "Missing email" });
 
@@ -134,7 +188,7 @@ app.get("/api/games", async (req, res) => {
 });
 
 app.post("/api/games", async (req, res) => {
-  const { email, title, rating, timeSpent } = req.body;
+  const { email, title, rating, timeSpent, imagePath } = req.body;
   if (!email || !title || rating == null || timeSpent == null)
     return res.status(400).json({ error: "Missing fields" });
   if (typeof rating !== "number" || rating < 1 || rating > 5)
@@ -144,10 +198,10 @@ app.post("/api/games", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO games (email, title, rating, timeSpent, dateAdded)
-       VALUES ($1, $2, $3, $4, NOW())
+      `INSERT INTO games (email, title, rating, timeSpent, dateAdded, image_path)
+       VALUES ($1, $2, $3, $4, NOW(), $5)
        RETURNING *`,
-      [email, title, rating, timeSpent]
+      [email, title, rating, timeSpent, imagePath || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -156,7 +210,7 @@ app.post("/api/games", async (req, res) => {
 });
 
 app.put("/api/games/:id", async (req, res) => {
-  const { email, title, rating, timeSpent } = req.body;
+  const { email, title, rating, timeSpent, imagePath } = req.body;
   const { id } = req.params;
   if (!email || !id) return res.status(400).json({ error: "Missing fields" });
 
@@ -165,10 +219,11 @@ app.put("/api/games/:id", async (req, res) => {
       `UPDATE games SET
         title = COALESCE($2, title),
         rating = COALESCE($3, rating),
-        timeSpent = COALESCE($4, timeSpent)
+        timeSpent = COALESCE($4, timeSpent),
+        image_path = COALESCE($6, image_path)
        WHERE id = $1 AND email = $5
        RETURNING *`,
-      [id, title, rating, timeSpent, email]
+      [id, title, rating, timeSpent, email, imagePath]
     );
     if (result.rows.length === 0)
       return res.status(404).json({ error: "Game not found" });
@@ -202,7 +257,7 @@ app.get("/api/games/public/popular", async (req, res) => {
   try {
     const [result, countResult] = await Promise.all([
       pool.query(
-        `SELECT id, title, rating, timeSpent, dateAdded
+        `SELECT id, title, rating, timeSpent, dateAdded, image_path
          FROM games
          ORDER BY rating DESC, timeSpent DESC
          LIMIT $1 OFFSET $2`,
@@ -226,7 +281,7 @@ app.get("/api/games/public/recent", async (req, res) => {
   try {
     const [result, countResult] = await Promise.all([
       pool.query(
-        `SELECT id, title, rating, timeSpent, dateAdded
+        `SELECT id, title, rating, timeSpent, dateAdded, image_path
          FROM games
          ORDER BY dateAdded DESC
          LIMIT $1 OFFSET $2`,
@@ -251,7 +306,7 @@ app.get("/api/games/public/search", async (req, res) => {
   try {
     const [result, countResult] = await Promise.all([
       pool.query(
-        `SELECT id, title, rating, timeSpent, dateAdded
+        `SELECT id, title, rating, timeSpent, dateAdded, image_path
          FROM games
          WHERE LOWER(title) LIKE $1
          ORDER BY id

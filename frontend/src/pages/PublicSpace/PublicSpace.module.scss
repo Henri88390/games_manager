@@ -12,18 +12,26 @@ section {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.2rem;
+  align-items: center;
 
   input {
     background: colors.$color-bg-card;
     color: colors.$color-text-main;
     border: 2px solid colors.$color-purple-dark;
     border-radius: 6px;
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    transition: border-color 0.2s;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    width: 250px;
+    min-width: 200px;
+    transition: border-color 0.2s, box-shadow 0.2s;
     &:focus {
       border-color: colors.$color-purple-light;
       outline: none;
+      box-shadow: 0 0 0 2px rgba(139, 91, 224, 0.2);
+    }
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.6);
     }
   }
 
@@ -32,12 +40,19 @@ section {
     color: colors.$color-text-main;
     border: none;
     border-radius: 6px;
-    padding: 0.5rem 1.2rem;
-    font-weight: bold;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+
     &:hover {
       background: colors.$color-primary-dark;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 }
@@ -124,14 +139,34 @@ section {
   color: #fff;
 }
 
+.searchResultMessage {
+  margin: 0.8rem 0;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+
+  &.found {
+    background: colors.$color-purple-light;
+    color: colors.$color-text-main;
+    border-left: 4px solid colors.$color-primary;
+  }
+
+  &.notFound {
+    background: colors.$color-purple-dark;
+    color: colors.$color-text-main;
+    border-left: 4px solid #ff6b6b;
+  }
+}
+
 .publicSpace {
   color: colors.$color-text-main;
 }
 
 .gamesTable th,
 .gamesTable td,
-.searchResultsTable th,
-.searchResultsTable td,
+searchResultsTable th,
+searchResultsTable td,
 section h1,
 section h2,
 .searchBar input,
