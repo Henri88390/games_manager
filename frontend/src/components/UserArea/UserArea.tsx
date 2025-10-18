@@ -63,10 +63,9 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     setPage(1);
     const params = new URLSearchParams(searchParams);
     params.set("searchField", searchField);
-    params.set("searchValue", searchInputRef.current?.value || "");
+    params.set("searchValue", pendingSearchValue);
     params.set("email", userEmail);
     setSearchParams(params);
-    fetchGames();
   };
 
   useEffect(() => {
@@ -237,14 +236,13 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const handleSearchFieldChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const params = new URLSearchParams(searchParams);
     params.set("searchField", e.target.value);
+    params.set("searchValue", ""); // Clear search value when field changes
     setSearchParams(params);
     setPendingSearchValue("");
   };
 
   const handleSearchValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("searchValue", e.target.value);
-    setSearchParams(params);
+    setPendingSearchValue(e.target.value);
   };
 
   const handleClear = () => {
@@ -253,8 +251,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     setSearchParams(params);
     setPendingSearchValue("");
     setPage(1);
-    fetchGames();
-    if (searchInputRef.current) searchInputRef.current.value = "";
   };
 
   return (
