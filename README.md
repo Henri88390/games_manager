@@ -22,14 +22,7 @@ docker-compose up -d
 This will start:
 
 - PostgreSQL database with demo data and default game images
-- Backend API server with image upload functionality
-
-The setup is fully automated and includes:
-
-- Database initialization with sample games
-- Real game cover images for demo games
-- Image upload API endpoint
-- Static file serving for uploaded images
+- Backend API server
 
 ---
 
