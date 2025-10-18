@@ -326,6 +326,38 @@ app.get("/api/games/public/search", async (req, res) => {
   }
 });
 
+// public endpoint to list games by user email (paginated)
+app.get("/api/games/public/by-user", async (req, res) => {
+  const email = (req.query.email as string) || "";
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const like = `%${email.toLowerCase()}%`;
+    const [result, countResult] = await Promise.all([
+      pool.query(
+        `SELECT id, title, rating, timeSpent, dateAdded, image_path
+         FROM games
+         WHERE LOWER(email) LIKE $1
+         ORDER BY dateAdded DESC
+         LIMIT $2 OFFSET $3`,
+        [like, limit, offset]
+      ),
+      pool.query(`SELECT COUNT(*) FROM games WHERE LOWER(email) LIKE $1`, [
+        like,
+      ]),
+    ]);
+
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
+  } catch (err) {
+    res.status(500).json({ error: "An error as occured" });
+  }
+});
+
 // --- user statistics ---
 app.get("/api/games/stats", async (req, res) => {
   const email = req.query.email as string;
