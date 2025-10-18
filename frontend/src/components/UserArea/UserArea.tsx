@@ -38,7 +38,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     { key: "title", label: "Title" },
     { key: "rating", label: "Rating" },
     { key: "timeSpent", label: "Time Spent (h)" },
-    { key: "dateadded", label: "Date Added" },
+    { key: "dateAdded", label: "Date Added" },
   ];
 
   const fetchGames = () => {
@@ -263,7 +263,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
 
       <div className={styles.bodyContainer}>
         <div className={styles.searchInputWrapper}>
-          <div className={styles.searchInputGroup}>
+          <div className={`${styles.searchInputGroup} ${searchField === SearchField.DateAdded ? styles.dateInputGroup : ''}`}>
             <input
               ref={searchInputRef}
               className={`${styles.input} ${styles.searchInput}`}
@@ -338,7 +338,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
             <option value="title">Title</option>
             <option value="rating">Rating</option>
             <option value="timeSpent">Time Spent</option>
-            <option value="dateadded">Date Added</option>
+            <option value="dateAdded">Date Added</option>
           </select>
         </div>
 

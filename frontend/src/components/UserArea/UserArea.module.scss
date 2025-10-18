@@ -305,6 +305,17 @@
   }
 }
 
+/* Adjust button positions for date inputs */
+.dateInputGroup .searchButton {
+  right: 0.4rem;
+  z-index: 5;
+}
+
+.dateInputGroup .clearButton {
+  right: 2.1rem;
+  z-index: 5;
+}
+
 select.input {
   min-width: 120px;
   max-width: 140px;
@@ -331,12 +342,32 @@ select.input {
 }
 
 .input[type="date"].searchInput {
+  /* Reset any appearance modifications */
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  appearance: auto;
+
+  /* Adjust padding to make room for calendar icon */
+  padding: 0.6rem 2.8rem 0.6rem 1rem;
+
   /* Calendar icon color for Chrome, Safari, Edge */
   &::-webkit-calendar-picker-indicator {
     filter: invert(38%) sepia(67%) saturate(746%) hue-rotate(227deg)
       brightness(94%) contrast(92%);
     cursor: pointer;
+    width: 20px;
+    height: 20px;
+    opacity: 1 !important;
+    display: block !important;
   }
+
+  /* Ensure the calendar icon is clickable */
+  &::-webkit-calendar-picker-indicator:hover {
+    filter: invert(48%) sepia(67%) saturate(746%) hue-rotate(227deg)
+      brightness(104%) contrast(102%);
+  }
+
+  /* Firefox date input styling */
   &::-moz-focus-inner {
     border-color: colors.$color-purple-light;
   }
