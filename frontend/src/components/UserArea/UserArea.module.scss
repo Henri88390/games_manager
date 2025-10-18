@@ -333,12 +333,16 @@ select.input {
   margin-left: 0.5rem;
 }
 
-.input[type="number"].searchInput {
+.input[type="number"] {
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
+  
+  /* Firefox */
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .input[type="date"].searchInput {
