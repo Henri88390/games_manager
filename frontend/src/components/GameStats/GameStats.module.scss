@@ -28,8 +28,6 @@
   background-position: center;
   border-radius: 10px;
   filter: saturate(1) contrast(1.05) brightness(1.05);
-  opacity: 0; // will fade in via animation
-  animation: fadeIn 0.9s ease-in forwards;
 
   // positions + individual sizes
   &:nth-child(1) {
