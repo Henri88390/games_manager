@@ -2,7 +2,7 @@
 
 ---
 
-### 1. Clone the Repository
+## 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Henri88390/games_manager.git
@@ -43,7 +43,7 @@ npm run dev
 
 ---
 
-### 4. Configure the Frontend (optional)
+## 4. Configure the Frontend (optional)
 
 If you want to test the pagination with different values, create a `.env` file in `/frontend`:
 
