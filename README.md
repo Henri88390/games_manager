@@ -48,7 +48,7 @@ npm run dev
 If you want to test the pagination with different values, create a `.env` file in `/frontend`:
 
 ```
-VITE_PAGINATION_LIMIT=10
+VITE_PAGINATION_LIMIT=5
 ```
 
 ---
@@ -58,6 +58,7 @@ VITE_PAGINATION_LIMIT=10
 - **Game Management**: Add, edit, delete games with ratings and time spent
 - **Image Upload**: Upload images for each game (max 5MB, JPG/PNG/GIF/SVG)
 - **Public Space**: View popular and recent games from all users
+- **Public Space Search**: Search games by title or user
 - **Search**: Search games by title, rating, time spent, or date
 - **Demo Data**: Includes 5 demo games with real game cover images
 
