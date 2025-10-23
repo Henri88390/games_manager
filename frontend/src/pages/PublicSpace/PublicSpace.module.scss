@@ -185,6 +185,42 @@ section {
   color: colors.$color-text-main;
 }
 
+.tabContainer {
+  display: flex;
+  border-bottom: 2px solid colors.$color-purple-dark;
+  margin-bottom: 1rem;
+  gap: 0;
+}
+
+.tab {
+  background: colors.$color-bg-card;
+  color: colors.$color-text-main;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 6px 6px 0 0;
+  margin-bottom: -2px;
+
+  &:hover {
+    background: colors.$color-purple-hover;
+    color: colors.$color-primary-light;
+  }
+
+  &.activeTab {
+    background: colors.$color-primary;
+    color: colors.$color-text-main;
+    border-bottom-color: colors.$color-primary;
+  }
+}
+
+.tabContent {
+  min-height: 400px;
+}
+
 .gamesTable th,
 .gamesTable td,
 searchResultsTable th,

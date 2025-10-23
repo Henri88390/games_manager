@@ -13,6 +13,7 @@ import type { Game, PublicSpaceProps } from "../../types/types";
 import styles from "./PublicSpace.module.scss";
 
 export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
+  const [activeTab, setActiveTab] = useState<"popular" | "recent">("popular");
   const [searchType, setSearchType] = useState<"title" | "email">("title");
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState<Game[]>([]);
@@ -222,136 +223,163 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
             )}
         </section>
 
-        {/* Then the two listing sections */}
+        {/* Tabbed section for Popular and Recent games */}
         <section>
-          <h2>Most Popular Games</h2>
-          <table className={styles.gamesTable}>
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Title</th>
-                <th>Rating</th>
-                <th>Time Played (h)</th>
-                <th>Date Added</th>
-              </tr>
-            </thead>
-            <tbody>
-              {popular.map((g: any) => (
-                <tr key={g.id}>
-                  <td>
-                    {g.image_path ? (
-                      <img
-                        src={`http://localhost:3000/uploads/${g.image_path}`}
-                        alt={g.title}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          objectFit: "cover",
-                          borderRadius: "4px",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          backgroundColor: "#f0f0f0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "10px",
-                          borderRadius: "4px",
-                        }}
-                      >
-                        No Image
-                      </div>
-                    )}
-                  </td>
-                  <td>{g.title}</td>
-                  <td>{g.rating}</td>
-                  <td>{g.timespent}</td>
-                  <td>
-                    {g.dateadded && !isNaN(new Date(g.dateadded).getTime())
-                      ? new Date(g.dateadded).toLocaleDateString()
-                      : "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {popularTotal > limit && (
-            <Pagination
-              page={popularPage}
-              limit={limit}
-              total={popularTotal}
-              setPage={setPopularPage}
-            />
-          )}
-        </section>
-        <section>
-          <h2>Recently Added Games</h2>
-          <table className={styles.gamesTable}>
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Title</th>
-                <th>Rating</th>
-                <th>Time Played (h)</th>
-                <th>Date Added</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recent.map((g: any) => (
-                <tr key={g.id}>
-                  <td>
-                    {g.image_path ? (
-                      <img
-                        src={`http://localhost:3000/uploads/${g.image_path}`}
-                        alt={g.title}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          objectFit: "cover",
-                          borderRadius: "4px",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          backgroundColor: "#f0f0f0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "10px",
-                          borderRadius: "4px",
-                        }}
-                      >
-                        No Image
-                      </div>
-                    )}
-                  </td>
-                  <td>{g.title}</td>
-                  <td>{g.rating}</td>
-                  <td>{g.timespent}</td>
-                  <td>
-                    {g.dateadded
-                      ? new Date(g.dateadded).toLocaleDateString()
-                      : "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {recentTotal > limit && (
-            <Pagination
-              page={recentPage}
-              limit={limit}
-              total={recentTotal}
-              setPage={setRecentPage}
-            />
-          )}
+          <div className={styles.tabContainer}>
+            <button
+              className={`${styles.tab} ${
+                activeTab === "popular" ? styles.activeTab : ""
+              }`}
+              onClick={() => setActiveTab("popular")}
+            >
+              Most Popular Games
+            </button>
+            <button
+              className={`${styles.tab} ${
+                activeTab === "recent" ? styles.activeTab : ""
+              }`}
+              onClick={() => setActiveTab("recent")}
+            >
+              Recently Added Games
+            </button>
+          </div>
+
+          <div className={styles.tabContent}>
+            {activeTab === "popular" && (
+              <>
+                <table className={styles.gamesTable}>
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Title</th>
+                      <th>Rating</th>
+                      <th>Time Played (h)</th>
+                      <th>Date Added</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {popular.map((g: any) => (
+                      <tr key={g.id}>
+                        <td>
+                          {g.image_path ? (
+                            <img
+                              src={`http://localhost:3000/uploads/${g.image_path}`}
+                              alt={g.title}
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                backgroundColor: "#f0f0f0",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "10px",
+                                borderRadius: "4px",
+                              }}
+                            >
+                              No Image
+                            </div>
+                          )}
+                        </td>
+                        <td>{g.title}</td>
+                        <td>{g.rating}</td>
+                        <td>{g.timespent}</td>
+                        <td>
+                          {g.dateadded &&
+                          !isNaN(new Date(g.dateadded).getTime())
+                            ? new Date(g.dateadded).toLocaleDateString()
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {popularTotal > limit && (
+                  <Pagination
+                    page={popularPage}
+                    limit={limit}
+                    total={popularTotal}
+                    setPage={setPopularPage}
+                  />
+                )}
+              </>
+            )}
+
+            {activeTab === "recent" && (
+              <>
+                <table className={styles.gamesTable}>
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Title</th>
+                      <th>Rating</th>
+                      <th>Time Played (h)</th>
+                      <th>Date Added</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recent.map((g: any) => (
+                      <tr key={g.id}>
+                        <td>
+                          {g.image_path ? (
+                            <img
+                              src={`http://localhost:3000/uploads/${g.image_path}`}
+                              alt={g.title}
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                backgroundColor: "#f0f0f0",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "10px",
+                                borderRadius: "4px",
+                              }}
+                            >
+                              No Image
+                            </div>
+                          )}
+                        </td>
+                        <td>{g.title}</td>
+                        <td>{g.rating}</td>
+                        <td>{g.timespent}</td>
+                        <td>
+                          {g.dateadded
+                            ? new Date(g.dateadded).toLocaleDateString()
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {recentTotal > limit && (
+                  <Pagination
+                    page={recentPage}
+                    limit={limit}
+                    total={recentTotal}
+                    setPage={setRecentPage}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </section>
       </div>
     </div>
