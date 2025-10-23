@@ -14,6 +14,28 @@ section {
   margin-bottom: 1.2rem;
   align-items: center;
 
+  .searchTypeSelect {
+    background: colors.$color-bg-card;
+    color: colors.$color-text-main;
+    border: 2px solid colors.$color-purple-dark;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    min-width: 120px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      border-color: colors.$color-purple-light;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(139, 91, 224, 0.2);
+    }
+
+    option {
+      background: colors.$color-bg-card;
+      color: colors.$color-text-main;
+    }
+  }
+
   input {
     background: colors.$color-bg-card;
     color: colors.$color-text-main;
