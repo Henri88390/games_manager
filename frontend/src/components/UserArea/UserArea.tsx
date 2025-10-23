@@ -51,7 +51,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   ];
 
   const { data: gamesData, isLoading } = useQuery({
-    queryKey: ["games", userEmail],
+    queryKey: ["games", userEmail, searchField, searchValue, page, limit],
     queryFn: () =>
       fetchUserGames(userEmail, searchField, searchValue, page, limit),
   });
