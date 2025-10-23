@@ -1,10 +1,43 @@
 @use "../../../public/styles/colors.module.scss";
 
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .title {
   font-size: 2rem;
-  margin-bottom: 2rem;
   color: colors.$color-purple-light;
-  text-align: center;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.addGameButton {
+  background: colors.$color-purple;
+  color: colors.$color-text-main;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background: colors.$color-purple-light;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .form {

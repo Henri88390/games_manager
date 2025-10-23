@@ -1,0 +1,232 @@
+@use "../../../public/styles/colors.module.scss";
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  background: colors.$color-bg-card;
+  border: 2px solid colors.$color-purple-dark;
+  border-radius: 12px;
+  padding: 0;
+  min-width: 400px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+  outline: none;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid colors.$color-purple-dark;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: colors.$color-purple-light;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: colors.$color-text-main;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+
+  &:hover {
+    background: colors.$color-purple-dark;
+    color: colors.$color-purple-light;
+  }
+}
+
+.form {
+  padding: 20px 24px 24px 24px;
+}
+
+.formRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+
+  &:last-of-type {
+    margin-bottom: 24px;
+  }
+}
+
+.input {
+  background: colors.$color-bg-dark;
+  color: colors.$color-text-main;
+  border: 2px solid colors.$color-purple-dark;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  flex: 1;
+  transition: border-color 0.2s ease;
+
+  &::placeholder {
+    color: #999;
+    opacity: 1;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: colors.$color-purple;
+  }
+
+  &:invalid {
+    border-color: colors.$color-error;
+  }
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.inputError {
+  font-size: 0.75rem;
+  color: colors.$color-error;
+  margin-top: 4px;
+  min-height: 18px;
+  line-height: 1.2;
+}
+
+.imageInputGroup {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.fileButton {
+  background: colors.$color-purple-dark;
+  color: colors.$color-text-main;
+  border: 2px solid colors.$color-purple;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+
+  &:hover {
+    background: colors.$color-purple;
+    border-color: colors.$color-purple-light;
+  }
+}
+
+.fileInputHelp {
+  font-size: 0.875rem;
+  color: #999;
+  line-height: 1.2;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  border: 2px solid colors.$color-purple-dark;
+  border-radius: 6px;
+  background: transparent;
+  color: colors.$color-text-main;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: colors.$color-purple;
+    background: colors.$color-purple-dark;
+    color: colors.$color-purple-light;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.addButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: colors.$color-purple;
+  color: colors.$color-text-main;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: colors.$color-purple-light;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background: colors.$color-secondary-dark;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

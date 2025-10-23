@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  createGame,
   deleteGame,
   fetchUserGames,
   updateGame,
@@ -10,6 +9,7 @@ import {
 } from "../../api/games";
 import { usePaginationLimit } from "../../hooks/usePaginationLimit";
 import { SearchField, type Game, type UserAreaProps } from "../../types/types";
+import CreateGameModal from "../CreateGameModal/CreateGameModal";
 import DeleteConfirmModal from "../DeleteConfirmModal/DeleteConfirmModal";
 import LoginHeader from "../LoginHeader/LoginHeader";
 import Pagination from "../Pagination/Pagination";
@@ -32,6 +32,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const [uploadedImagePath, setUploadedImagePath] = useState<string>("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const sortField = searchParams.get("sortField") || "title";
   const sortOrder = searchParams.get("sortOrder") || "asc";
@@ -59,31 +60,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const total = gamesData?.total || 0;
 
   // Mutations
-  const createGameMutation = useMutation({
-    mutationFn: createGame,
-    onSuccess: () => {
-      // Invalidate user's private games
-      queryClient.invalidateQueries({ queryKey: ["games", userEmail] });
-      // Invalidate public queries that could be affected by new games
-      queryClient.invalidateQueries({ queryKey: ["games", "recent"] });
-      queryClient.invalidateQueries({ queryKey: ["games", "popular"] });
-
-      setForm({ title: "", rating: 0, timeSpent: 0 });
-      setSelectedImage(null);
-      setUploadedImagePath("");
-      setEditingId(null);
-      setError("");
-      setToast("Game added successfully!");
-      setToastType("success");
-      setTimeout(() => setToast(""), 2000);
-    },
-    onError: (error: Error) => {
-      setError(error.message);
-      setToast(error.message);
-      setToastType("error");
-      setTimeout(() => setToast(""), 2000);
-    },
-  });
 
   const updateGameMutation = useMutation({
     mutationFn: ({ id, gameData }: { id: string; gameData: any }) =>
@@ -160,6 +136,26 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     }
   };
 
+  const handleShowCreateModal = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+  };
+
+  const handleCreateSuccess = (message: string) => {
+    setToast(message);
+    setToastType("success");
+    setTimeout(() => setToast(""), 2000);
+  };
+
+  const handleCreateError = (message: string) => {
+    setToast(message);
+    setToastType("error");
+    setTimeout(() => setToast(""), 2000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -184,8 +180,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
 
     if (editingId) {
       updateGameMutation.mutate({ id: editingId, gameData });
-    } else {
-      createGameMutation.mutate(gameData);
     }
   };
 
@@ -361,82 +355,91 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
           </select>
         </div>
 
-        <h2 className={styles.title}>Your Games</h2>
+        <div className={styles.titleRow}>
+          <h2 className={styles.title}>Your Games</h2>
+          <button
+            className={styles.addGameButton}
+            onClick={handleShowCreateModal}
+            type="button"
+          >
+            + Add Game
+          </button>
+        </div>
         {toast && <Toast message={toast} visible={!!toast} type={toastType} />}
         {error && <div className={styles.error}>{error}</div>}
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.formRow}>
-            <input
-              className={styles.input}
-              type="text"
-              placeholder="Title"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              required
-            />
-            <div className={styles.inputGroup}>
+        {editingId && (
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.formRow}>
+              <input
+                className={styles.input}
+                type="text"
+                placeholder="Title"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                required
+              />
+              <div className={styles.inputGroup}>
+                <input
+                  className={styles.input}
+                  type="number"
+                  min={0}
+                  max={5}
+                  placeholder="Rating"
+                  value={form.rating === 0 ? "" : form.rating}
+                  onChange={handleRatingChange}
+                  required
+                />
+                <span className={styles.inputError}>
+                  {ratingError ? ratingError : "\u00A0"}
+                </span>
+              </div>
               <input
                 className={styles.input}
                 type="number"
                 min={0}
-                max={5}
-                placeholder="Rating"
-                value={form.rating === 0 ? "" : form.rating}
-                onChange={handleRatingChange}
+                placeholder="Time spent"
+                value={form.timeSpent === 0 ? "" : form.timeSpent}
+                onChange={(e) =>
+                  setForm({ ...form, timeSpent: Number(e.target.value) })
+                }
                 required
               />
-              <span className={styles.inputError}>
-                {ratingError ? ratingError : "\u00A0"}
-              </span>
+              <div className={styles.imageInputGroup}>
+                <input
+                  ref={fileInputRef}
+                  className={styles.hiddenFileInput}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setSelectedImage(e.target.files?.[0] || null)
+                  }
+                />
+                <button
+                  type="button"
+                  className={styles.fileButton}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Change Image
+                </button>
+                <span className={styles.fileInputHelp}>
+                  {selectedImage
+                    ? `Selected: ${selectedImage.name}`
+                    : uploadedImagePath
+                    ? `Current: ${uploadedImagePath}`
+                    : "Max 5MB, JPG/PNG/GIF"}
+                </span>
+              </div>
             </div>
-            <input
-              className={styles.input}
-              type="number"
-              min={0}
-              placeholder="Time spent"
-              value={form.timeSpent === 0 ? "" : form.timeSpent}
-              onChange={(e) =>
-                setForm({ ...form, timeSpent: Number(e.target.value) })
-              }
-              required
-            />
-            <div className={styles.imageInputGroup}>
-              <input
-                ref={fileInputRef}
-                className={styles.hiddenFileInput}
-                type="file"
-                accept="image/*"
-                onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
-              />
+            <div className={styles.buttonRow}>
               <button
-                type="button"
-                className={styles.fileButton}
-                onClick={() => fileInputRef.current?.click()}
+                className={styles.button}
+                type="submit"
+                disabled={
+                  updateGameMutation.isPending || uploadImageMutation.isPending
+                }
               >
-                {editingId ? "Change Image" : "Choose Image"}
+                Update Game
               </button>
-              <span className={styles.fileInputHelp}>
-                {selectedImage
-                  ? `Selected: ${selectedImage.name}`
-                  : editingId && uploadedImagePath
-                  ? `Current: ${uploadedImagePath}`
-                  : "Max 5MB, JPG/PNG/GIF"}
-              </span>
-            </div>
-          </div>
-          <div className={styles.buttonRow}>
-            <button
-              className={styles.button}
-              type="submit"
-              disabled={
-                createGameMutation.isPending ||
-                updateGameMutation.isPending ||
-                uploadImageMutation.isPending
-              }
-            >
-              {editingId ? "Update Game" : "Add Game"}
-            </button>
-            {editingId && (
               <button
                 className={styles.cancelButton}
                 type="button"
@@ -449,9 +452,9 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
               >
                 Cancel
               </button>
-            )}
-          </div>
-        </form>
+            </div>
+          </form>
+        )}
         {isLoading ? (
           <div className={styles.loading}>Loading...</div>
         ) : (
@@ -518,6 +521,14 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
             />
           </>
         )}
+
+        <CreateGameModal
+          isOpen={showCreateModal}
+          userEmail={userEmail}
+          onClose={handleCloseCreateModal}
+          onSuccess={handleCreateSuccess}
+          onError={handleCreateError}
+        />
 
         <DeleteConfirmModal
           isOpen={showDeleteModal}
