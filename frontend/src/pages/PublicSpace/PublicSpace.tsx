@@ -152,6 +152,7 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
                           <th>Rating</th>
                           <th>Time Played (h)</th>
                           <th>Date Added</th>
+                          {lastSearchedType === "email" && <th>User Email</th>}
                         </tr>
                       </thead>
                       <tbody>
@@ -195,6 +196,9 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
                                 ? new Date(g.dateadded).toLocaleDateString()
                                 : "-"}
                             </td>
+                            {lastSearchedType === "email" && (
+                              <td>{g.email || "-"}</td>
+                            )}
                           </tr>
                         ))}
                       </tbody>

@@ -19,7 +19,10 @@ router.get("/popular", async (req: Request, res: Response) => {
       ),
       pool.query(`SELECT COUNT(*) FROM games`),
     ]);
-    res.json({ results: result.rows, total: parseInt(countResult.rows[0].count, 10) });
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });
   }
@@ -41,7 +44,10 @@ router.get("/recent", async (req: Request, res: Response) => {
       ),
       pool.query(`SELECT COUNT(*) FROM games`),
     ]);
-    res.json({ results: result.rows, total: parseInt(countResult.rows[0].count, 10) });
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });
   }
@@ -63,9 +69,14 @@ router.get("/search", async (req: Request, res: Response) => {
          LIMIT $2 OFFSET $3`,
         [`%${title}%`, limit, offset]
       ),
-      pool.query(`SELECT COUNT(*) FROM games WHERE LOWER(title) LIKE $1`, [`%${title}%`]),
+      pool.query(`SELECT COUNT(*) FROM games WHERE LOWER(title) LIKE $1`, [
+        `%${title}%`,
+      ]),
     ]);
-    res.json({ results: result.rows, total: parseInt(countResult.rows[0].count, 10) });
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: err });
   }
@@ -82,17 +93,22 @@ router.get("/by-user", async (req: Request, res: Response) => {
     const like = `%${email.toLowerCase()}%`;
     const [result, countResult] = await Promise.all([
       pool.query(
-        `SELECT id, title, rating, timeSpent, dateAdded, image_path
+        `SELECT id, title, rating, timeSpent, dateAdded, image_path, email
          FROM games
          WHERE LOWER(email) LIKE $1
          ORDER BY dateAdded DESC
          LIMIT $2 OFFSET $3`,
         [like, limit, offset]
       ),
-      pool.query(`SELECT COUNT(*) FROM games WHERE LOWER(email) LIKE $1`, [like]),
+      pool.query(`SELECT COUNT(*) FROM games WHERE LOWER(email) LIKE $1`, [
+        like,
+      ]),
     ]);
 
-    res.json({ results: result.rows, total: parseInt(countResult.rows[0].count, 10) });
+    res.json({
+      results: result.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    });
   } catch (err) {
     res.status(500).json({ error: "An error as occured" });
   }
