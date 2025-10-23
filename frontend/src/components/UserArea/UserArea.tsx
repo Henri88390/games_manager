@@ -1,16 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  deleteGame,
-  fetchUserGames,
-  updateGame,
-  uploadGameImage,
-} from "../../api/games";
+import { deleteGame, fetchUserGames } from "../../api/games";
 import { usePaginationLimit } from "../../hooks/usePaginationLimit";
 import { SearchField, type Game, type UserAreaProps } from "../../types/types";
 import CreateGameModal from "../CreateGameModal/CreateGameModal";
 import DeleteConfirmModal from "../DeleteConfirmModal/DeleteConfirmModal";
+import EditGameModal from "../EditGameModal/EditGameModal";
 import LoginHeader from "../LoginHeader/LoginHeader";
 import Pagination from "../Pagination/Pagination";
 import Toast from "../Toast/Toast";
@@ -22,17 +18,14 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   //pagination
   const [page, setPage] = useState(1);
   const limit = usePaginationLimit();
-  const [form, setForm] = useState({ title: "", rating: 0, timeSpent: 0 });
-  const [error, setError] = useState("");
+  const [error] = useState("");
   const [toast, setToast] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
-  const [ratingError, setRatingError] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [uploadedImagePath, setUploadedImagePath] = useState<string>("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const sortField = searchParams.get("sortField") || "title";
   const sortOrder = searchParams.get("sortOrder") || "asc";
@@ -40,7 +33,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const searchValue = searchParams.get("searchValue") || "";
   const [pendingSearchValue, setPendingSearchValue] = useState(searchValue);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const columns = [
     { key: "image", label: "Image" },
@@ -60,34 +52,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const total = gamesData?.total || 0;
 
   // Mutations
-
-  const updateGameMutation = useMutation({
-    mutationFn: ({ id, gameData }: { id: string; gameData: any }) =>
-      updateGame(id, gameData),
-    onSuccess: () => {
-      // Invalidate user's private games
-      queryClient.invalidateQueries({ queryKey: ["games", userEmail] });
-      // Invalidate public queries that could be affected by rating/data changes
-      queryClient.invalidateQueries({ queryKey: ["games", "popular"] });
-      queryClient.invalidateQueries({ queryKey: ["games", "recent"] });
-
-      setForm({ title: "", rating: 0, timeSpent: 0 });
-      setSelectedImage(null);
-      setUploadedImagePath("");
-      setEditingId(null);
-      setError("");
-      setToast("Game updated successfully!");
-      setToastType("success");
-      setTimeout(() => setToast(""), 2000);
-    },
-    onError: (error: Error) => {
-      setError(error.message);
-      setToast(error.message);
-      setToastType("error");
-      setTimeout(() => setToast(""), 2000);
-    },
-  });
-
   const deleteGameMutation = useMutation({
     mutationFn: ({ id, email }: { id: string; email: string }) =>
       deleteGame(id, email),
@@ -109,10 +73,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     },
   });
 
-  const uploadImageMutation = useMutation({
-    mutationFn: uploadGameImage,
-  });
-
   const triggerSearch = () => {
     setPage(1);
     const params = new URLSearchParams(searchParams);
@@ -125,16 +85,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   useEffect(() => {
     setPendingSearchValue(searchValue);
   }, [searchValue]);
-
-  const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    setForm({ ...form, rating: value });
-    if (value < 1 || value > 5) {
-      setRatingError("Rating must be between 1 and 5");
-    } else {
-      setRatingError("");
-    }
-  };
 
   const handleShowCreateModal = () => {
     setShowCreateModal(true);
@@ -154,33 +104,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     setToast(message);
     setToastType("error");
     setTimeout(() => setToast(""), 2000);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    let imagePath = uploadedImagePath;
-
-    // Upload image if selected
-    if (selectedImage) {
-      try {
-        const uploadResult = await uploadImageMutation.mutateAsync(
-          selectedImage
-        );
-        imagePath = uploadResult.imagePath;
-        setUploadedImagePath(imagePath);
-      } catch (error) {
-        setError("Error uploading image");
-        return;
-      }
-    }
-
-    const gameData = { email: userEmail, ...form, imagePath };
-
-    if (editingId) {
-      updateGameMutation.mutate({ id: editingId, gameData });
-    }
   };
 
   const handleDeleteClick = (game: Game) => {
@@ -206,14 +129,25 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   };
 
   const handleEdit = (game: Game) => {
-    setForm({
-      title: game.title,
-      rating: game.rating,
-      timeSpent: game.timespent,
-    });
-    setEditingId(game.id);
-    setUploadedImagePath(game.image_path || "");
-    setSelectedImage(null); // Reset file input
+    setGameToEdit(game);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setGameToEdit(null);
+  };
+
+  const handleEditSuccess = (message: string) => {
+    setToast(message);
+    setToastType("success");
+    setTimeout(() => setToast(""), 2000);
+  };
+
+  const handleEditError = (message: string) => {
+    setToast(message);
+    setToastType("error");
+    setTimeout(() => setToast(""), 2000);
   };
 
   const getSortIcon = (field: string) => {
@@ -367,94 +301,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
         </div>
         {toast && <Toast message={toast} visible={!!toast} type={toastType} />}
         {error && <div className={styles.error}>{error}</div>}
-        {editingId && (
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.formRow}>
-              <input
-                className={styles.input}
-                type="text"
-                placeholder="Title"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required
-              />
-              <div className={styles.inputGroup}>
-                <input
-                  className={styles.input}
-                  type="number"
-                  min={0}
-                  max={5}
-                  placeholder="Rating"
-                  value={form.rating === 0 ? "" : form.rating}
-                  onChange={handleRatingChange}
-                  required
-                />
-                <span className={styles.inputError}>
-                  {ratingError ? ratingError : "\u00A0"}
-                </span>
-              </div>
-              <input
-                className={styles.input}
-                type="number"
-                min={0}
-                placeholder="Time spent"
-                value={form.timeSpent === 0 ? "" : form.timeSpent}
-                onChange={(e) =>
-                  setForm({ ...form, timeSpent: Number(e.target.value) })
-                }
-                required
-              />
-              <div className={styles.imageInputGroup}>
-                <input
-                  ref={fileInputRef}
-                  className={styles.hiddenFileInput}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setSelectedImage(e.target.files?.[0] || null)
-                  }
-                />
-                <button
-                  type="button"
-                  className={styles.fileButton}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Change Image
-                </button>
-                <span className={styles.fileInputHelp}>
-                  {selectedImage
-                    ? `Selected: ${selectedImage.name}`
-                    : uploadedImagePath
-                    ? `Current: ${uploadedImagePath}`
-                    : "Max 5MB, JPG/PNG/GIF"}
-                </span>
-              </div>
-            </div>
-            <div className={styles.buttonRow}>
-              <button
-                className={styles.button}
-                type="submit"
-                disabled={
-                  updateGameMutation.isPending || uploadImageMutation.isPending
-                }
-              >
-                Update Game
-              </button>
-              <button
-                className={styles.cancelButton}
-                type="button"
-                onClick={() => {
-                  setEditingId(null);
-                  setForm({ title: "", rating: 1, timeSpent: 0 });
-                  setSelectedImage(null);
-                  setUploadedImagePath("");
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
         {isLoading ? (
           <div className={styles.loading}>Loading...</div>
         ) : (
@@ -528,6 +374,15 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
           onClose={handleCloseCreateModal}
           onSuccess={handleCreateSuccess}
           onError={handleCreateError}
+        />
+
+        <EditGameModal
+          isOpen={showEditModal}
+          game={gameToEdit}
+          userEmail={userEmail}
+          onClose={handleCloseEditModal}
+          onSuccess={handleEditSuccess}
+          onError={handleEditError}
         />
 
         <DeleteConfirmModal
