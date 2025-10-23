@@ -10,6 +10,7 @@ import {
 } from "../../api/games";
 import { usePaginationLimit } from "../../hooks/usePaginationLimit";
 import { SearchField, type Game, type UserAreaProps } from "../../types/types";
+import DeleteConfirmModal from "../DeleteConfirmModal/DeleteConfirmModal";
 import LoginHeader from "../LoginHeader/LoginHeader";
 import Pagination from "../Pagination/Pagination";
 import Toast from "../Toast/Toast";
@@ -29,6 +30,8 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [uploadedImagePath, setUploadedImagePath] = useState<string>("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const sortField = searchParams.get("sortField") || "title";
   const sortOrder = searchParams.get("sortOrder") || "asc";
@@ -186,9 +189,26 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setToast("");
-    deleteGameMutation.mutate({ id, email: userEmail });
+  const handleDeleteClick = (game: Game) => {
+    setGameToDelete(game);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (gameToDelete) {
+      setToast("");
+      deleteGameMutation.mutate({
+        id: gameToDelete.id,
+        email: userEmail,
+      });
+      setShowDeleteModal(false);
+      setGameToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setGameToDelete(null);
   };
 
   const handleEdit = (game: Game) => {
@@ -481,7 +501,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
                       </button>
                       <button
                         className={styles.deleteButton}
-                        onClick={() => handleDelete(game.id)}
+                        onClick={() => handleDeleteClick(game)}
                       >
                         Delete
                       </button>
@@ -498,6 +518,14 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
             />
           </>
         )}
+
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          game={gameToDelete}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          isDeleting={deleteGameMutation.isPending}
+        />
       </div>
     </div>
   );
