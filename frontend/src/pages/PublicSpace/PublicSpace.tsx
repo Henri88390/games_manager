@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { fetchPopularGames, fetchRecentGames } from "../../api/publicGames";
 import LoginHeader from "../../components/LoginHeader/LoginHeader";
 import Pagination from "../../components/Pagination/Pagination";
 import { usePaginationLimit } from "../../hooks/usePaginationLimit";
@@ -6,8 +8,6 @@ import type { Game, PublicSpaceProps } from "../../types/types";
 import styles from "./PublicSpace.module.scss";
 
 export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
-  const [popular, setPopular] = useState<Game[]>([]);
-  const [recent, setRecent] = useState<Game[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState<Game[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -24,9 +24,7 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
   //pagination
   const limit = usePaginationLimit();
   const [popularPage, setPopularPage] = useState(1);
-  const [popularTotal, setPopularTotal] = useState(0);
   const [recentPage, setRecentPage] = useState(1);
-  const [recentTotal, setRecentTotal] = useState(0);
   const [searchPage, setSearchPage] = useState(1);
   const [searchTotal, setSearchTotal] = useState(0);
 
@@ -34,27 +32,25 @@ export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
   const [userSearchPage, setUserSearchPage] = useState(1);
   const [userSearchTotal, setUserSearchTotal] = useState(0);
 
-  useEffect(() => {
-    fetch(
-      `http://localhost:3000/api/games/public/popular?page=${popularPage}&limit=${limit}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setPopular(data.results);
-        setPopularTotal(data.total);
-      });
-  }, [popularPage, limit]);
+  // React Query for popular games
+  const { data: popularData } = useQuery({
+    queryKey: ["games", "popular", popularPage, limit],
+    queryFn: () => fetchPopularGames(popularPage, limit),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  useEffect(() => {
-    fetch(
-      `http://localhost:3000/api/games/public/recent?page=${recentPage}&limit=${limit}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setRecent(data.results);
-        setRecentTotal(data.total);
-      });
-  }, [recentPage, limit]);
+  const popular = popularData?.results || [];
+  const popularTotal = popularData?.total || 0;
+
+  // React Query for recent games
+  const { data: recentData } = useQuery({
+    queryKey: ["games", "recent", recentPage, limit],
+    queryFn: () => fetchRecentGames(recentPage, limit),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const recent = recentData?.results || [];
+  const recentTotal = recentData?.total || 0;
 
   const handleSearch = () => {
     if (!searchValue.trim()) {

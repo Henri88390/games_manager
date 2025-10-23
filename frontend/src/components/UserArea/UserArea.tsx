@@ -1,5 +1,13 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import {
+  createGame,
+  deleteGame,
+  fetchUserGames,
+  updateGame,
+  uploadGameImage,
+} from "../../api/games";
 import { usePaginationLimit } from "../../hooks/usePaginationLimit";
 import { SearchField, type Game, type UserAreaProps } from "../../types/types";
 import LoginHeader from "../LoginHeader/LoginHeader";
@@ -8,14 +16,11 @@ import Toast from "../Toast/Toast";
 import styles from "./UserArea.module.scss";
 
 export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
-  const [games, setGames] = useState<Game[]>([]);
+  const queryClient = useQueryClient();
 
   //pagination
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const limit = usePaginationLimit();
-
-  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ title: "", rating: 0, timeSpent: 0 });
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
@@ -41,23 +46,93 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     { key: "dateAdded", label: "Date Added" },
   ];
 
-  const fetchGames = () => {
-    setLoading(true);
-    const params = new URLSearchParams({
-      email: userEmail,
-      searchField,
-      searchValue,
-      page: String(page),
-      limit: String(limit),
-    });
-    fetch(`http://localhost:3000/api/games?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setGames(data.results || []);
-        setTotal(data.total || 0);
-      })
-      .finally(() => setLoading(false));
-  };
+  const { data: gamesData, isLoading } = useQuery({
+    queryKey: ["games", userEmail],
+    queryFn: () =>
+      fetchUserGames(userEmail, searchField, searchValue, page, limit),
+  });
+
+  const games = gamesData?.results || [];
+  const total = gamesData?.total || 0;
+
+  // Mutations
+  const createGameMutation = useMutation({
+    mutationFn: createGame,
+    onSuccess: () => {
+      // Invalidate user's private games
+      queryClient.invalidateQueries({ queryKey: ["games", userEmail] });
+      // Invalidate public queries that could be affected by new games
+      queryClient.invalidateQueries({ queryKey: ["games", "recent"] });
+      queryClient.invalidateQueries({ queryKey: ["games", "popular"] });
+
+      setForm({ title: "", rating: 0, timeSpent: 0 });
+      setSelectedImage(null);
+      setUploadedImagePath("");
+      setEditingId(null);
+      setError("");
+      setToast("Game added successfully!");
+      setToastType("success");
+      setTimeout(() => setToast(""), 2000);
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+      setToast(error.message);
+      setToastType("error");
+      setTimeout(() => setToast(""), 2000);
+    },
+  });
+
+  const updateGameMutation = useMutation({
+    mutationFn: ({ id, gameData }: { id: string; gameData: any }) =>
+      updateGame(id, gameData),
+    onSuccess: () => {
+      // Invalidate user's private games
+      queryClient.invalidateQueries({ queryKey: ["games", userEmail] });
+      // Invalidate public queries that could be affected by rating/data changes
+      queryClient.invalidateQueries({ queryKey: ["games", "popular"] });
+      queryClient.invalidateQueries({ queryKey: ["games", "recent"] });
+
+      setForm({ title: "", rating: 0, timeSpent: 0 });
+      setSelectedImage(null);
+      setUploadedImagePath("");
+      setEditingId(null);
+      setError("");
+      setToast("Game updated successfully!");
+      setToastType("success");
+      setTimeout(() => setToast(""), 2000);
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+      setToast(error.message);
+      setToastType("error");
+      setTimeout(() => setToast(""), 2000);
+    },
+  });
+
+  const deleteGameMutation = useMutation({
+    mutationFn: ({ id, email }: { id: string; email: string }) =>
+      deleteGame(id, email),
+    onSuccess: () => {
+      // Invalidate user's private games
+      queryClient.invalidateQueries({ queryKey: ["games", userEmail] });
+      // Invalidate public queries that could be affected by game removal
+      queryClient.invalidateQueries({ queryKey: ["games", "popular"] });
+      queryClient.invalidateQueries({ queryKey: ["games", "recent"] });
+
+      setToast("Game deleted successfully!");
+      setToastType("success");
+      setTimeout(() => setToast(""), 2000);
+    },
+    onError: (error: Error) => {
+      setToast(error.message);
+      setToastType("error");
+      setTimeout(() => setToast(""), 2000);
+    },
+  });
+
+  const uploadImageMutation = useMutation({
+    mutationFn: uploadGameImage,
+  });
 
   const triggerSearch = () => {
     setPage(1);
@@ -72,11 +147,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     setPendingSearchValue(searchValue);
   }, [searchValue]);
 
-  useEffect(() => {
-    fetchGames();
-    // eslint-disable-next-line
-  }, [userEmail, page, searchField, searchValue]);
-
   const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
     setForm({ ...form, rating: value });
@@ -89,7 +159,6 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
     let imagePath = uploadedImagePath;
@@ -97,99 +166,29 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
     // Upload image if selected
     if (selectedImage) {
       try {
-        const formData = new FormData();
-        formData.append("image", selectedImage);
-
-        const uploadResponse = await fetch(
-          "http://localhost:3000/api/games/upload-image",
-          {
-            method: "POST",
-            body: formData,
-          }
+        const uploadResult = await uploadImageMutation.mutateAsync(
+          selectedImage
         );
-
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          imagePath = uploadData.imagePath;
-          setUploadedImagePath(imagePath);
-        } else {
-          setError("Failed to upload image");
-          setLoading(false);
-          return;
-        }
+        imagePath = uploadResult.imagePath;
+        setUploadedImagePath(imagePath);
       } catch (error) {
         setError("Error uploading image");
-        setLoading(false);
         return;
       }
     }
 
-    let response;
-    if (editingId) {
-      response = await fetch(`http://localhost:3000/api/games/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, ...form, imagePath }),
-      });
-    } else {
-      response = await fetch("http://localhost:3000/api/games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, ...form, imagePath }),
-      });
-    }
-    const data = await response.json();
-    if (!response.ok) {
-      const errorMessage = data.error || "An error occurred";
-      setError(errorMessage);
-      setToast(errorMessage);
-      setToastType("error");
-      setTimeout(() => setToast(""), 2000);
-      setLoading(false);
-      return;
-    }
-    setForm({ title: "", rating: 0, timeSpent: 0 });
-    setSelectedImage(null);
-    setUploadedImagePath("");
-    setEditingId(null);
-    setError("");
-    setToast(
-      editingId ? "Game updated successfully!" : "Game added successfully!"
-    );
-    setToastType("success");
-    setTimeout(() => setToast(""), 2000);
+    const gameData = { email: userEmail, ...form, imagePath };
 
-    fetchGames();
+    if (editingId) {
+      updateGameMutation.mutate({ id: editingId, gameData });
+    } else {
+      createGameMutation.mutate(gameData);
+    }
   };
 
   const handleDelete = async (id: string) => {
-    setLoading(true);
     setToast("");
-    let response;
-    try {
-      response = await fetch(`http://localhost:3000/api/games/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        const errorMessage = data.error || "Failed to delete game";
-        setToast(errorMessage);
-        setToastType("error");
-        setTimeout(() => setToast(""), 2000);
-        setLoading(false);
-        return;
-      }
-      setToast("Game deleted successfully!");
-      setToastType("success");
-      setTimeout(() => setToast(""), 2000);
-    } catch {
-      setToast("Network error while deleting game");
-      setToastType("error");
-      setTimeout(() => setToast(""), 2000);
-    }
-    fetchGames();
+    deleteGameMutation.mutate({ id, email: userEmail });
   };
 
   const handleEdit = (game: Game) => {
@@ -259,7 +258,11 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
 
       <div className={styles.bodyContainer}>
         <div className={styles.searchInputWrapper}>
-          <div className={`${styles.searchInputGroup} ${searchField === SearchField.DateAdded ? styles.dateInputGroup : ''}`}>
+          <div
+            className={`${styles.searchInputGroup} ${
+              searchField === SearchField.DateAdded ? styles.dateInputGroup : ""
+            }`}
+          >
             <input
               ref={searchInputRef}
               className={`${styles.input} ${styles.searchInput}`}
@@ -402,7 +405,15 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
             </div>
           </div>
           <div className={styles.buttonRow}>
-            <button className={styles.button} type="submit" disabled={loading}>
+            <button
+              className={styles.button}
+              type="submit"
+              disabled={
+                createGameMutation.isPending ||
+                updateGameMutation.isPending ||
+                uploadImageMutation.isPending
+              }
+            >
               {editingId ? "Update Game" : "Add Game"}
             </button>
             {editingId && (
@@ -421,7 +432,7 @@ export default function UserArea({ userEmail, onLogout }: UserAreaProps) {
             )}
           </div>
         </form>
-        {loading ? (
+        {isLoading ? (
           <div className={styles.loading}>Loading...</div>
         ) : (
           <>
