@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styles from "./LoginHeader.module.scss";
 
 interface LoginHeaderProps {
@@ -8,6 +8,7 @@ interface LoginHeaderProps {
 }
 
 export default function LoginHeader({ userEmail, onLogout }: LoginHeaderProps) {
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
@@ -76,7 +77,9 @@ export default function LoginHeader({ userEmail, onLogout }: LoginHeaderProps) {
       >
         <Link
           to="/"
-          className={styles.menuItem}
+          className={`${styles.menuItem} ${
+            location.pathname === "/" ? styles.active : ""
+          }`}
           onClick={() => setMenuOpen(false)}
         >
           <span className={styles.menuIcon}>
@@ -93,7 +96,9 @@ export default function LoginHeader({ userEmail, onLogout }: LoginHeaderProps) {
         </Link>
         <Link
           to="/user-area"
-          className={styles.menuItem}
+          className={`${styles.menuItem} ${
+            location.pathname === "/user-area" ? styles.active : ""
+          }`}
           onClick={() => setMenuOpen(false)}
         >
           <span className={styles.menuIcon}>
@@ -114,7 +119,9 @@ export default function LoginHeader({ userEmail, onLogout }: LoginHeaderProps) {
         </Link>
         <Link
           to="/public-space"
-          className={styles.menuItem}
+          className={`${styles.menuItem} ${
+            location.pathname === "/public-space" ? styles.active : ""
+          }`}
           onClick={() => setMenuOpen(false)}
         >
           <span className={styles.menuIcon}>

@@ -49,10 +49,15 @@
   font-size: 1.08rem;
   padding: 0.4rem 0.2rem;
   border-radius: 4px;
-  transition: background 0.18s;
+  transition: background 0.18s, color 0.18s;
   &:hover {
     background: rgba(138, 91, 224, 0.1);
     color: colors.$color-primary;
+  }
+  &.active {
+    background: rgba(138, 91, 224, 0.15);
+    color: colors.$color-primary;
+    font-weight: 600;
   }
 }
 
