@@ -8,12 +8,13 @@ import {
 } from "../../api/publicGames";
 import LoginHeader from "../../components/LoginHeader/LoginHeader";
 import Pagination from "../../components/Pagination/Pagination";
+import { useGlobalState } from "../../hooks/useGlobalState";
 import { usePaginationLimit } from "../../hooks/usePaginationLimit";
 import type { Game, PublicSpaceProps } from "../../types/types";
 import styles from "./PublicSpace.module.scss";
 
 export default function PublicSpace({ userEmail, onLogout }: PublicSpaceProps) {
-  const [activeTab, setActiveTab] = useState<"popular" | "recent">("popular");
+  const { activeTab, setActiveTab } = useGlobalState();
   const [searchType, setSearchType] = useState<"title" | "email">("title");
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState<Game[]>([]);
