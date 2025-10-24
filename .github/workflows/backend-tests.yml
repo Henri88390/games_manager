@@ -44,12 +44,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: backend/package.json
 
       - name: Install dependencies
         run: |
           cd backend
-          npm ci
+          npm install
 
       - name: Setup test database
         run: |
