@@ -41,7 +41,7 @@ export class GameService {
     limit: number = 10
   ): Promise<PaginatedResult<Game>> {
     if (!title?.trim()) {
-      return { results: [], total: 0 };
+      throw new Error("Title is required");
     }
 
     if (page < 1) page = 1;
