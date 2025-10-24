@@ -2,13 +2,15 @@
 
 ## Method 1: Manual Testing (Recommended)
 
-### Quick Test
+### Quick Test (Local Machine)
 
-Run the automated test script:
+Run the automated test script on your local machine:
 
 ```bash
 ./test-ci-locally.sh
 ```
+
+**Important:** This script runs on your host machine and manages Docker Compose itself. Do NOT run this script inside a Docker container.
 
 ### Step-by-Step Manual Testing
 
@@ -67,7 +69,25 @@ npm run build
 docker-compose down
 ```
 
-## Method 2: Using Act (Advanced)
+## Method 2: Docker-based Testing (Isolated Environment)
+
+### Quick Docker Test
+
+```bash
+# Test in completely isolated Docker environment
+docker-compose -f docker-compose.test.yml up --build
+```
+
+**What this does:**
+
+- Creates isolated PostgreSQL and test runner containers
+- Runs a Docker-specific test script (no docker-compose dependency)
+- Tests backend compilation and test suite
+- Automatically cleans up when finished
+
+**Note:** This method uses a different test script (`docker-test.sh`) that's optimized for running inside Docker containers.
+
+## Method 3: Using Act (Advanced)
 
 Act allows you to run GitHub Actions locally in Docker containers.
 

@@ -4,3 +4,7 @@ dist
 
 # Jest cache
 .jest-cache
+
+# Test coverage reports
+coverage/
+*.lcov

@@ -13,11 +13,30 @@ COPY frontend/package*.json frontend/
 RUN cd backend && npm ci
 RUN cd frontend && npm ci
 
+FROM node:20
+
+WORKDIR /app
+
+# Install PostgreSQL client for database testing
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+# Copy package files first for better Docker layer caching
+COPY backend/package*.json backend/
+COPY frontend/package*.json frontend/
+
+# Install dependencies
+RUN cd backend && npm ci
+RUN cd frontend && npm ci
+
+# Copy test scripts
+COPY test-ci-locally.sh ./
+COPY docker-test.sh ./
+
 # Copy source code
 COPY . .
 
-# Make test script executable
-RUN chmod +x test-ci-locally.sh
+# Make sure scripts are executable
+RUN chmod +x test-ci-locally.sh docker-test.sh
 
 # Set environment variables for testing
 ENV NODE_ENV=test
@@ -27,5 +46,5 @@ ENV DB_NAME=games_db
 ENV DB_USER=user
 ENV DB_PASSWORD=password
 
-# Default command runs the CI test script
-CMD ["./test-ci-locally.sh"]
+# Default command runs the Docker-specific test script
+CMD ["bash", "./docker-test.sh"]
