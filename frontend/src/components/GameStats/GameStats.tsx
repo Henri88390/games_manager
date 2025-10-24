@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import Toast from "../Toast/Toast";
 import styles from "./GameStats.module.scss";
 
@@ -16,40 +15,63 @@ const defaultImages = [
 ];
 
 export default function GameStats({ userEmail }: GameStatsProps) {
-  const [globalStats, setGlobalStats] = useState<{
-    totalGames: number;
-    totalTime: number;
-    avgRating: number;
-    avgTime: number;
-  } | null>(null);
-  const [errorGlobalStats, setErrorGlobalStats] = useState(false);
-
-  const { data: gameStatsData, error: errorStats } = useQuery({
-    queryKey: ["app", "games", "stats", userEmail],
+  // User stats query with proper error handling
+  const {
+    data: gameStatsData,
+    error: errorStats,
+    isLoading: userStatsLoading,
+  } = useQuery({
+    queryKey: ["games", "stats", "user", userEmail],
     queryFn: async () => {
-      const res = await fetch(
+      const response = await fetch(
         `http://localhost:3000/api/games/stats?email=${encodeURIComponent(
           userEmail
         )}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          return data;
-        });
-      return res;
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user stats: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
-    staleTime: 1000 * 60 * 10, //10 minutes
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 2,
   });
 
-  useEffect(() => {
-    fetch(`http://localhost:3000/api/games/public/stats`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) setErrorGlobalStats(true);
-        else setGlobalStats(data);
-      })
-      .catch(() => setErrorGlobalStats(true));
-  }, [userEmail]);
+  // Global stats query
+  const {
+    data: globalStats,
+    error: errorGlobalStats,
+    isLoading: globalStatsLoading,
+  } = useQuery({
+    queryKey: ["games", "stats", "global"],
+    queryFn: async () => {
+      const response = await fetch(
+        `http://localhost:3000/api/games/public/stats`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch global stats: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
+    },
+    staleTime: 1000 * 60 * 15, // 15 minutes (global stats change less frequently)
+    retry: 2,
+  });
 
   return (
     <div className={styles.statsPage}>
@@ -71,11 +93,24 @@ export default function GameStats({ userEmail }: GameStatsProps) {
       {/* Foreground content */}
       <div className={styles.content}>
         <h1>Game Statistics</h1>
-        {errorStats !== null && (
+        {errorStats && (
           <Toast
-            message={"Unable to load statistics."}
-            visible={errorStats !== null}
+            message={"Unable to load user statistics."}
+            visible={!!errorStats}
           />
+        )}
+        {errorGlobalStats && (
+          <Toast
+            message={"Unable to load global statistics."}
+            visible={!!errorGlobalStats}
+          />
+        )}
+        {(userStatsLoading || globalStatsLoading) && (
+          <div
+            style={{ textAlign: "center", margin: "1rem 0", color: "#8a5be0" }}
+          >
+            Loading statistics...
+          </div>
         )}
         <table className={styles.statsTable}>
           <thead>
@@ -93,7 +128,6 @@ export default function GameStats({ userEmail }: GameStatsProps) {
               <td>
                 {errorStats ? 0 : gameStatsData ? gameStatsData.totalGames : ""}
               </td>
-
               <td>
                 {errorGlobalStats
                   ? 0
