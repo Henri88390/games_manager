@@ -57,6 +57,32 @@ VITE_PAGINATION_LIMIT=5
 
 ---
 
+## Testing
+
+The project includes comprehensive backend API tests. See [`backend/TESTING.md`](backend/TESTING.md) for testing documentation.
+
+```bash
+# Run backend tests
+cd backend
+npm test
+
+# Run with coverage
+npm run test:coverage
+```
+
+---
+
+## CI/CD
+
+This project uses GitHub Actions for continuous integration. See [`CI_CD.md`](CI_CD.md) for detailed CI/CD documentation.
+
+**Automated testing runs on:**
+
+- Push to `main` branch
+- Pull requests to `main` branch
+
+---
+
 ## Stopping the Database
 
 ```bash
