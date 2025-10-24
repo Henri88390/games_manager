@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import Toast from "../Toast/Toast";
 import styles from "./GameStats.module.scss";
@@ -15,34 +16,32 @@ const defaultImages = [
 ];
 
 export default function GameStats({ userEmail }: GameStatsProps) {
-  const [userStats, setUserStats] = useState<{
-    totalGames: number;
-    totalTime: number;
-    avgRating: number;
-    avgTime: number;
-  } | null>(null);
   const [globalStats, setGlobalStats] = useState<{
     totalGames: number;
     totalTime: number;
     avgRating: number;
     avgTime: number;
   } | null>(null);
-  const [errorStats, setErrorStats] = useState(false);
   const [errorGlobalStats, setErrorGlobalStats] = useState(false);
 
-  useEffect(() => {
-    fetch(
-      `http://localhost:3000/api/games/stats?email=${encodeURIComponent(
-        userEmail
-      )}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) setErrorStats(true);
-        else setUserStats(data);
-      })
-      .catch(() => setErrorStats(true));
+  const { data: gameStatsData, error: errorStats } = useQuery({
+    queryKey: ["app", "games", "stats", userEmail],
+    queryFn: async () => {
+      const res = await fetch(
+        `http://localhost:3000/api/games/stats?email=${encodeURIComponent(
+          userEmail
+        )}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          return data;
+        });
+      return res;
+    },
+    staleTime: 1000 * 60 * 10, //10 minutes
+  });
 
+  useEffect(() => {
     fetch(`http://localhost:3000/api/games/public/stats`)
       .then((res) => res.json())
       .then((data) => {
@@ -72,8 +71,11 @@ export default function GameStats({ userEmail }: GameStatsProps) {
       {/* Foreground content */}
       <div className={styles.content}>
         <h1>Game Statistics</h1>
-        {errorStats && (
-          <Toast message={"Unable to load statistics."} visible={errorStats} />
+        {errorStats !== null && (
+          <Toast
+            message={"Unable to load statistics."}
+            visible={errorStats !== null}
+          />
         )}
         <table className={styles.statsTable}>
           <thead>
@@ -88,7 +90,10 @@ export default function GameStats({ userEmail }: GameStatsProps) {
               <td>
                 <strong>Total Games</strong>
               </td>
-              <td>{errorStats ? 0 : userStats ? userStats.totalGames : ""}</td>
+              <td>
+                {errorStats ? 0 : gameStatsData ? gameStatsData.totalGames : ""}
+              </td>
+
               <td>
                 {errorGlobalStats
                   ? 0
@@ -101,7 +106,9 @@ export default function GameStats({ userEmail }: GameStatsProps) {
               <td>
                 <strong>Total Time Played (h)</strong>
               </td>
-              <td>{errorStats ? 0 : userStats ? userStats.totalTime : ""}</td>
+              <td>
+                {errorStats ? 0 : gameStatsData ? gameStatsData.totalTime : ""}
+              </td>
               <td>
                 {errorGlobalStats
                   ? 0
@@ -117,8 +124,8 @@ export default function GameStats({ userEmail }: GameStatsProps) {
               <td>
                 {errorStats
                   ? "0.00"
-                  : userStats
-                  ? userStats.avgRating.toFixed(2)
+                  : gameStatsData
+                  ? gameStatsData.avgRating.toFixed(2)
                   : ""}
               </td>
               <td>
@@ -136,8 +143,8 @@ export default function GameStats({ userEmail }: GameStatsProps) {
               <td>
                 {errorStats
                   ? "0.00"
-                  : userStats
-                  ? userStats.avgTime.toFixed(2)
+                  : gameStatsData
+                  ? gameStatsData.avgTime.toFixed(2)
                   : ""}
               </td>
               <td>
