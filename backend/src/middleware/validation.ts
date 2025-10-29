@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+
 import { CustomError } from "./errorHandler";
 
 // Email validation middleware
@@ -7,7 +8,7 @@ export const validateEmail = (
   res: Response,
   next: NextFunction
 ): void => {
-  const email = req.body.email || req.query.email;
+  const email = (req.body && req.body.email) || (req.query && req.query.email);
 
   if (!email) {
     return next(new CustomError("Email is required", 400));
@@ -21,13 +22,12 @@ export const validateEmail = (
   next();
 };
 
-// Game data validation middleware
 export const validateGameData = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  const { title, rating, timespent } = req.body;
+  const { title, rating, timespent, timeSpent } = req.body;
 
   // Title validation
   if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -52,22 +52,27 @@ export const validateGameData = (
     );
   }
 
-  // Time spent validation
-  if (timespent === undefined || timespent === null) {
+  // Time spent validation - handle both timespent and timeSpent
+  const timeSpentValue = timespent || timeSpent;
+  if (timeSpentValue === undefined || timeSpentValue === null) {
     return next(new CustomError("Time spent is required", 400));
   }
 
-  const numTimeSpent = Number(timespent);
+  const numTimeSpent = Number(timeSpentValue);
   if (isNaN(numTimeSpent) || numTimeSpent < 0) {
     return next(
       new CustomError("Time spent must be a non-negative number", 400)
     );
   }
 
-  // Sanitize and attach validated data
+  // Sanitize and attach validated data (normalize to timespent for consistency)
   req.body.title = title.trim();
   req.body.rating = numRating;
   req.body.timespent = numTimeSpent;
+  // Remove timeSpent if it exists to avoid confusion
+  if (req.body.timeSpent !== undefined) {
+    delete req.body.timeSpent;
+  }
 
   next();
 };
@@ -168,4 +173,88 @@ export const validateSearch = (
   }
 
   next();
+};
+
+// Joi validation for game creation (single endpoint implementation)
+export const validateGameCreationJoi = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // Dynamic import to avoid build issues
+    const Joi = await import("joi");
+
+    // Define schema inline to avoid external imports
+    const gameCreationSchema = Joi.default.object({
+      email: Joi.default
+        .string()
+        .email({ tlds: { allow: false } })
+        .required()
+        .messages({
+          "string.email": "Invalid email format",
+          "any.required": "Email is required",
+        }),
+      title: Joi.default.string().trim().min(1).max(100).required().messages({
+        "string.empty": "Title is required and must be a non-empty string",
+        "string.min": "Title is required and must be a non-empty string",
+        "string.max": "Title must be less than 100 characters",
+        "any.required": "Title is required and must be a non-empty string",
+      }),
+      rating: Joi.default
+        .number()
+        .min(0)
+        .max(10)
+        .precision(1)
+        .required()
+        .messages({
+          "number.min": "Rating must be between 0 and 10",
+          "number.max": "Rating must be between 0 and 10",
+          "number.precision": "Rating can have at most 1 decimal place",
+          "any.required": "Rating is required",
+        }),
+      timespent: Joi.default.number().min(0).integer().optional().messages({
+        "number.min": "Time spent must be a non-negative integer",
+        "number.integer": "Time spent must be a non-negative integer",
+      }),
+      timeSpent: Joi.default.number().min(0).integer().optional().messages({
+        "number.min": "Time spent must be a non-negative integer",
+        "number.integer": "Time spent must be a non-negative integer",
+      }),
+      description: Joi.default.string().max(500).allow("").optional().messages({
+        "string.max": "Description must be less than 500 characters",
+      }),
+    });
+
+    const { error, value } = gameCreationSchema.validate(req.body, {
+      abortEarly: false, // Return all validation errors
+      stripUnknown: true, // Remove unknown properties
+      convert: true, // Convert types (e.g., string numbers to numbers)
+    });
+
+    if (error) {
+      const errorMessage = error.details
+        .map((detail: any) => detail.message)
+        .join("; ");
+      return next(new CustomError(errorMessage, 400));
+    }
+
+    // Handle both timespent and timeSpent field names
+    if (!value.timespent && !value.timeSpent) {
+      return next(new CustomError("Time spent is required", 400));
+    }
+
+    // Normalize the field name to timespent for the database
+    if (value.timeSpent && !value.timespent) {
+      value.timespent = value.timeSpent;
+      delete value.timeSpent;
+    }
+
+    // Replace the original data with validated/sanitized data
+    req.body = value;
+    next();
+  } catch (err) {
+    // Fallback to legacy validation if Joi is not available
+    return next(new CustomError("Validation library not available", 500));
+  }
 };

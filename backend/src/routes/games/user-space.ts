@@ -5,6 +5,7 @@ import { userGameController } from "../../controllers/UserGameController";
 import { strictRateLimit, userRateLimit } from "../../middleware/rateLimit";
 import {
   validateEmail,
+  validateGameCreationJoi,
   validateGameData,
   validateIdParam,
   validatePagination,
@@ -54,12 +55,7 @@ router.get(
   validatePagination,
   userGameController.getUserGames
 );
-router.post(
-  "/",
-  validateEmail,
-  validateGameData,
-  userGameController.createGame
-);
+router.post("/", validateGameCreationJoi, userGameController.createGame);
 router.put(
   "/:id",
   validateIdParam,
