@@ -94,7 +94,8 @@ export const userRateLimit = createRateLimit({
   windowMs: 60 * 1000, // 1 minute
   maxRequests: 30, // 30 requests per minute per user
   keyGenerator: (req: Request) => {
-    const email = req.body.email || req.query.email;
+    // Safely access email from body or query parameters
+    const email = (req.body && req.body.email) || req.query.email;
     return email ? `user:${email}` : req.ip || "unknown";
   },
   message: "Too many requests for this user, please slow down",
